@@ -7,6 +7,7 @@ import { Colors } from "@/constants/Colors";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 export default function TabLayout() {
   return (
@@ -78,11 +79,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="claims"
         options={{
-          title: "Explore",
+          title: "Claims",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={24} name="paperplane.fill" color={color} />
+            <FontAwesome6 name="money-check-dollar" size={24} color={color} />
           ),
         }}
       />
