@@ -1,16 +1,12 @@
-
-import React from "react";
-import { Image, ScrollView, StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import { Image, ScrollView, StyleSheet, View, TextInput } from "react-native"; // Switching to TextInput from 'react-native'
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { appointments } from "@/assets/dummyData/appointments";
-import { students } from "@/assets/dummyData/students";
 import { Colors } from "@/constants/Colors";
-import { useState } from "react";
 import { Feather } from "@expo/vector-icons";
-import { TextInput } from "react-native-gesture-handler";
 
 export default function AppointmentsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,55 +31,55 @@ export default function AppointmentsScreen() {
     { id: "today", label: "Today" },
   ];
 
-    const renderStatsCard = () => (
-        <ThemedView variant="elevated" style={styles.statsCard}>
-        <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>{stats.total}</ThemedText>
-            <ThemedText type="caption">Total</ThemedText>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>{stats.completed}</ThemedText>
-            <ThemedText type="caption">Completed</ThemedText>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>{stats.pending}</ThemedText>
-            <ThemedText type="caption">Pending</ThemedText>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>{stats.today}</ThemedText>
-            <ThemedText type="caption">Today</ThemedText>
-            </View>
+  const renderStatsCard = () => (
+    <ThemedView variant="elevated" style={styles.statsCard}>
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statNumber}>{stats.total}</ThemedText>
+          <ThemedText type="caption">Total</ThemedText>
         </View>
-        </ThemedView>
-    );
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statNumber}>{stats.completed}</ThemedText>
+          <ThemedText type="caption">Completed</ThemedText>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statNumber}>{stats.pending}</ThemedText>
+          <ThemedText type="caption">Pending</ThemedText>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statNumber}>{stats.today}</ThemedText>
+          <ThemedText type="caption">Today</ThemedText>
+        </View>
+      </View>
+    </ThemedView>
+  );
 
-    const renderFilters = () => (
-        <View style={styles.filtersContainer}>
-        {filters.map((filter) => (
-            <ThemedView
-            key={filter.id}
+  const renderFilters = () => (
+    <View style={styles.filtersContainer}>
+      {filters.map((filter) => (
+        <ThemedView
+          key={filter.id}
+          style={[
+            styles.filterButton,
+            filter.id === activeFilter && styles.activeFilterButton,
+          ]}
+          onTouchEnd={() => setActiveFilter(filter.id)}
+        >
+          <ThemedText
             style={[
-                styles.filterButton,
-                filter.id === activeFilter && styles.activeFilterButton,
+              styles.filterText,
+              filter.id === activeFilter && styles.activeFilterText,
             ]}
-            onTouchEnd={() => setActiveFilter(filter.id)}
-            >
-            <ThemedText
-                style={[
-                styles.filterText,
-                filter.id === activeFilter && styles.activeFilterText,
-                ]}
-            >
-                {filter.label}
-            </ThemedText>
-            </ThemedView>
-        ))}
-        </View>
-    );
+          >
+            {filter.label}
+          </ThemedText>
+        </ThemedView>
+      ))}
+    </View>
+  );
 
   // Filter appointments based on search and filter
   const filteredAppointments = appointments.filter((appointment) => {
@@ -134,7 +130,6 @@ export default function AppointmentsScreen() {
     });
   };
 
-  // Define the images for boys and girls
   const boyImages = [
     require("@/assets/images/student-pp/boy1.jpg"),
     require("@/assets/images/student-pp/boy2.jpg"),
@@ -151,10 +146,9 @@ export default function AppointmentsScreen() {
     require("@/assets/images/student-pp/girl5.jpg"),
   ];
 
-  // Dynamically determine the profile image based on student gender and their index
   const getProfileImage = (student) => {
     const genderImages = student.gender === "male" ? boyImages : girlImages;
-    const index = (student.id % 5) - 1; // Modulo by 5 to cycle between the images
+    const index = (student.id % 5) - 1;
     return genderImages[index];
   };
 
@@ -166,16 +160,10 @@ export default function AppointmentsScreen() {
         <View style={styles.cardContent}>
           <View style={styles.header}>
             <View style={styles.nameAndStatus}>
-              <Image
-                source={profileImage}
-                style={styles.profileImage}
-              />
+              <Image source={profileImage} style={styles.profileImage} />
               <ThemedText
                 type="subtitle"
-                style={[
-                  styles.studentName,
-                  { color: Colors.light.textGray[100] },
-                ]}
+                style={[styles.studentName, { color: Colors.light.textGray[100] }]}
               >
                 {appointment.student.name}
               </ThemedText>
@@ -187,8 +175,7 @@ export default function AppointmentsScreen() {
               ]}
             >
               <ThemedText style={styles.statusText}>
-                {appointment.status.charAt(0).toUpperCase() +
-                  appointment.status.slice(1)}
+                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
               </ThemedText>
             </View>
           </View>
@@ -278,7 +265,11 @@ export default function AppointmentsScreen() {
 
         {/* Appointments List */}
         <View style={styles.listContainer}>
-          {filteredAppointments.map(renderAppointmentCard)}
+          {filteredAppointments.length > 0 ? (
+            filteredAppointments.map(renderAppointmentCard)
+          ) : (
+            <ThemedText>No appointments found.</ThemedText>
+          )}
         </View>
       </View>
     </ParallaxScrollView>
@@ -375,89 +366,73 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
   },
   cardContent: {
-    padding: 20,
+    padding: 16,
   },
   header: {
-    flexDirection: "row", // Align header in a row to keep the profile on the left and status/priority on the right
-    justifyContent: "space-between", // Space out the elements to opposite ends
-    alignItems: "flex-start", // Align the profile and name to the top left
-    gap: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   nameAndStatus: {
     flexDirection: "row",
     alignItems: "center",
   },
-  studentName: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginLeft: 8, // Adjust space between image and name
-  },
   profileImage: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  studentName: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
   },
   statusBadge: {
-    width: 110,
+    paddingVertical: 4,
     paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },
   statusText: {
-    color: "white",
-    fontSize: 12,
+    color: Colors.light.textGray[900],
     fontWeight: "600",
   },
   priorityBadge: {
-    width: 120,
-    paddingHorizontal: 12,
-    marginTop: 5,
+    marginTop: 8,
     paddingVertical: 6,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 14,
+    borderRadius: 30,
   },
   priorityText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+    fontWeight: "500",
+    color: Colors.light.textGray[100],
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.light.textGray[500],
-    opacity: 0.1,
-    marginVertical: 16,
+    backgroundColor: Colors.light.textGray[300] + "40",
+    marginVertical: 12,
   },
   infoContainer: {
-    gap: 12,
+    marginVertical: 12,
   },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    marginBottom: 8,
   },
   label: {
     fontSize: 14,
-    color: Colors.light.textGray[300],
     fontWeight: "500",
+    color: Colors.light.textGray[400],
   },
   value: {
     fontSize: 14,
-    color: Colors.light.textGray[100],
     fontWeight: "500",
+    color: Colors.light.textGray[100],
   },
 });
