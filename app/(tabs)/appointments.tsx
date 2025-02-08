@@ -130,6 +130,7 @@ export default function AppointmentsScreen() {
     });
   };
 
+  // Boy and Girl Images
   const boyImages = [
     require("@/assets/images/student-pp/boy1.jpg"),
     require("@/assets/images/student-pp/boy2.jpg"),
@@ -147,10 +148,32 @@ export default function AppointmentsScreen() {
   ];
 
   const getProfileImage = (student) => {
-    const genderImages = student.gender === "male" ? boyImages : girlImages;
-    const index = (student.id % 5) - 1;
-    return genderImages[index];
+    switch (student.id) {
+      case 101:
+        return boyImages[0];  // boy1
+      case 102:
+        return girlImages[0]; // girl1
+      case 103:
+        return boyImages[1];  // boy2
+      case 104:
+        return girlImages[1]; // girl2
+      case 105:
+        return boyImages[2];  // boy3
+      case 106:
+        return girlImages[2]; // girl3
+      case 107:
+        return boyImages[3];  // boy4
+      case 108:
+        return girlImages[3]; // girl4
+      case 109:
+        return boyImages[4];  // boy5
+      case 110:
+        return girlImages[4]; // girl5
+      default:
+        return null; // Return null if no match is found
+    }
   };
+
 
   const renderAppointmentCard = (appointment) => {
     const profileImage = getProfileImage(appointment.student);
@@ -384,7 +407,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 5,
     marginRight: 12,
   },
   studentName: {
@@ -392,6 +415,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[100],
   },
   statusBadge: {
+    width: 110,
     paddingVertical: 4,
     paddingHorizontal: 12,
     borderRadius: 20,
@@ -403,10 +427,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   priorityBadge: {
+    width: 150,
     marginTop: 8,
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
   priorityText: {
     fontWeight: "500",
