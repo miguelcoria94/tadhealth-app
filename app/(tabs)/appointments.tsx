@@ -1,9 +1,10 @@
 import React from "react";
-import { Image, ScrollView, StyleSheet, View, Platform } from "react-native";
+import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { appointments } from "@/assets/dummyData/appointments";
+import { students } from "@/assets/dummyData/students";
 import { Colors } from "@/constants/Colors";
 
 export default function AppointmentsScreen() {
@@ -40,20 +41,52 @@ export default function AppointmentsScreen() {
     });
   };
 
-  const renderAppointmentCard = (appointment) => (
-    <ThemedView key={appointment.id} style={styles.card}>
-      <View style={styles.cardContent}>
-        <View style={styles.header}>
-          <View style={styles.nameAndStatus}>
-            <ThemedText
-              type="subtitle"
-              style={[
-                styles.studentName,
-                { color: Colors.light.textGray[100] },
-              ]}
-            >
-              {appointment.student.name}
-            </ThemedText>
+  // Define the images for boys and girls
+  const boyImages = [
+    require("@/assets/images/student-pp/boy1.jpg"),
+    require("@/assets/images/student-pp/boy2.jpg"),
+    require("@/assets/images/student-pp/boy3.jpg"),
+    require("@/assets/images/student-pp/boy4.jpg"),
+    require("@/assets/images/student-pp/boy5.jpg"),
+  ];
+
+  const girlImages = [
+    require("@/assets/images/student-pp/girl1.jpg"),
+    require("@/assets/images/student-pp/girl2.jpg"),
+    require("@/assets/images/student-pp/girl3.jpg"),
+    require("@/assets/images/student-pp/girl4.jpg"),
+    require("@/assets/images/student-pp/girl5.jpg"),
+  ];
+
+  // Dynamically determine the profile image based on student gender and their index
+  const getProfileImage = (student) => {
+    const genderImages = student.gender === "male" ? boyImages : girlImages;
+    const index = (student.id % 5) - 1; // Modulo by 5 to cycle between the images
+    return genderImages[index];
+  };
+
+  const renderAppointmentCard = (appointment) => {
+    const profileImage = getProfileImage(appointment.student);
+
+    return (
+      <ThemedView key={appointment.id} style={styles.card}>
+        <View style={styles.cardContent}>
+          <View style={styles.header}>
+            <View style={styles.nameAndStatus}>
+              <Image
+                source={profileImage}
+                style={styles.profileImage}
+              />
+              <ThemedText
+                type="subtitle"
+                style={[
+                  styles.studentName,
+                  { color: Colors.light.textGray[100] },
+                ]}
+              >
+                {appointment.student.name}
+              </ThemedText>
+            </View>
             <View
               style={[
                 styles.statusBadge,
@@ -66,6 +99,7 @@ export default function AppointmentsScreen() {
               </ThemedText>
             </View>
           </View>
+
           <View
             style={[
               styles.priorityBadge,
@@ -76,42 +110,40 @@ export default function AppointmentsScreen() {
               {appointment.priority.toUpperCase()} Priority
             </ThemedText>
           </View>
-        </View>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <View style={styles.infoContainer}>
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>Time</ThemedText>
-            <ThemedText style={styles.value}>
-              {`${formatDate(appointment.time.date)} at ${
-                appointment.time.time
-              }`}
-            </ThemedText>
-          </View>
+          <View style={styles.infoContainer}>
+            <View style={styles.infoRow}>
+              <ThemedText style={styles.label}>Time</ThemedText>
+              <ThemedText style={styles.value}>
+                {`${formatDate(appointment.time.date)} at ${appointment.time.time}`}
+              </ThemedText>
+            </View>
 
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>Location</ThemedText>
-            <ThemedText style={styles.value}>
-              {appointment.time.location}
-            </ThemedText>
-          </View>
+            <View style={styles.infoRow}>
+              <ThemedText style={styles.label}>Location</ThemedText>
+              <ThemedText style={styles.value}>
+                {appointment.time.location}
+              </ThemedText>
+            </View>
 
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>Counselor</ThemedText>
-            <ThemedText style={styles.value}>
-              {appointment.counselor.name}
-            </ThemedText>
-          </View>
+            <View style={styles.infoRow}>
+              <ThemedText style={styles.label}>Counselor</ThemedText>
+              <ThemedText style={styles.value}>
+                {appointment.counselor.name}
+              </ThemedText>
+            </View>
 
-          <View style={styles.infoRow}>
-            <ThemedText style={styles.label}>Type</ThemedText>
-            <ThemedText style={styles.value}>{appointment.type}</ThemedText>
+            <View style={styles.infoRow}>
+              <ThemedText style={styles.label}>Type</ThemedText>
+              <ThemedText style={styles.value}>{appointment.type}</ThemedText>
+            </View>
           </View>
         </View>
-      </View>
-    </ThemedView>
-  );
+      </ThemedView>
+    );
+  };
 
   return (
     <ParallaxScrollView
@@ -175,16 +207,55 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
+    flexDirection: "row", // Align header in a row to keep the profile on the left and status/priority on the right
+    justifyContent: "space-between", // Space out the elements to opposite ends
+    alignItems: "flex-start", // Align the profile and name to the top left
     gap: 12,
   },
   nameAndStatus: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
   },
   studentName: {
     fontSize: 18,
     fontWeight: "600",
+    marginLeft: 8, // Adjust space between image and name
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  priorityBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  priorityText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  reactLogo: {
+    height: 178,
+    width: 290,
+    bottom: 0,
+    left: 0,
+    position: "absolute",
   },
   divider: {
     height: 1,
@@ -209,33 +280,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.textGray[100],
     fontWeight: "500",
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  statusText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  priorityBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  priorityText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
   },
 });

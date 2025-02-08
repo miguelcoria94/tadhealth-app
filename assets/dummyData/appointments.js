@@ -487,8 +487,7 @@ export const appointments = [
   },
 ];
 
-// Example data structure for students (10 students)
-const students = [
+export const students = [
   {
     id: 101,
     name: "John Doe",
@@ -499,6 +498,7 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 5,
+    gender: "male",  // added gender
   },
   {
     id: 102,
@@ -510,6 +510,7 @@ const students = [
     parentConsent: false,
     studentConsent: true,
     totalAppointments: 2,
+    gender: "female",
   },
   {
     id: 103,
@@ -521,6 +522,7 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 8,
+    gender: "male",
   },
   {
     id: 104,
@@ -532,6 +534,7 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 3,
+    gender: "female",
   },
   {
     id: 105,
@@ -543,6 +546,7 @@ const students = [
     parentConsent: true,
     studentConsent: false,
     totalAppointments: 4,
+    gender: "male",
   },
   {
     id: 106,
@@ -554,6 +558,7 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 6,
+    gender: "female",  // added gender
   },
   {
     id: 107,
@@ -565,6 +570,7 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 2,
+    gender: "male",  // added gender
   },
   {
     id: 108,
@@ -576,6 +582,7 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 7,
+    gender: "female",  // added gender
   },
   {
     id: 109,
@@ -587,6 +594,7 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 5,
+    gender: "male",  // added gender
   },
   {
     id: 110,
@@ -598,8 +606,10 @@ const students = [
     parentConsent: true,
     studentConsent: true,
     totalAppointments: 4,
+    gender: "female",  // added gender
   },
 ];
+
 
 // Sample app tabs (appointments and students)
 const appTabs = {
