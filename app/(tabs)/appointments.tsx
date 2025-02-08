@@ -403,6 +403,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   statusBadge: {
+    width: 110,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -415,7 +416,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   priorityBadge: {
+    width: 120,
     paddingHorizontal: 12,
+    marginTop: 5,
     paddingVertical: 6,
     borderRadius: 20,
     justifyContent: "center",
