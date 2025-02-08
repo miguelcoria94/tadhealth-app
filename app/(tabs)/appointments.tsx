@@ -1,23 +1,16 @@
-<<<<<<< HEAD
+
 import React from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
-=======
-import React, { useState } from "react";
-import {
-  Image,
-  StyleSheet,
-  View,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
->>>>>>> 47ddf78 (updated appointments)
+
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { appointments } from "@/assets/dummyData/appointments";
 import { students } from "@/assets/dummyData/students";
 import { Colors } from "@/constants/Colors";
+import { useState } from "react";
 import { Feather } from "@expo/vector-icons";
+import { TextInput } from "react-native-gesture-handler";
 
 export default function AppointmentsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,6 +34,56 @@ export default function AppointmentsScreen() {
     { id: "completed", label: "Completed" },
     { id: "today", label: "Today" },
   ];
+
+    const renderStatsCard = () => (
+        <ThemedView variant="elevated" style={styles.statsCard}>
+        <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>{stats.total}</ThemedText>
+            <ThemedText type="caption">Total</ThemedText>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>{stats.completed}</ThemedText>
+            <ThemedText type="caption">Completed</ThemedText>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>{stats.pending}</ThemedText>
+            <ThemedText type="caption">Pending</ThemedText>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>{stats.today}</ThemedText>
+            <ThemedText type="caption">Today</ThemedText>
+            </View>
+        </View>
+        </ThemedView>
+    );
+
+    const renderFilters = () => (
+        <View style={styles.filtersContainer}>
+        {filters.map((filter) => (
+            <ThemedView
+            key={filter.id}
+            style={[
+                styles.filterButton,
+                filter.id === activeFilter && styles.activeFilterButton,
+            ]}
+            onTouchEnd={() => setActiveFilter(filter.id)}
+            >
+            <ThemedText
+                style={[
+                styles.filterText,
+                filter.id === activeFilter && styles.activeFilterText,
+                ]}
+            >
+                {filter.label}
+            </ThemedText>
+            </ThemedView>
+        ))}
+        </View>
+    );
 
   // Filter appointments based on search and filter
   const filteredAppointments = appointments.filter((appointment) => {
@@ -91,7 +134,6 @@ export default function AppointmentsScreen() {
     });
   };
 
-<<<<<<< HEAD
   // Define the images for boys and girls
   const boyImages = [
     require("@/assets/images/student-pp/boy1.jpg"),
@@ -138,73 +180,6 @@ export default function AppointmentsScreen() {
                 {appointment.student.name}
               </ThemedText>
             </View>
-=======
-  const renderStatsCard = () => (
-    <ThemedView variant="elevated" style={styles.statsCard}>
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <ThemedText type="title" style={styles.statNumber}>
-            {stats.total}
-          </ThemedText>
-          <ThemedText type="caption">Total</ThemedText>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <ThemedText type="title" style={styles.statNumber}>
-            {stats.today}
-          </ThemedText>
-          <ThemedText type="caption">Today</ThemedText>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <ThemedText type="title" style={styles.statNumber}>
-            {stats.pending}
-          </ThemedText>
-          <ThemedText type="caption">Pending</ThemedText>
-        </View>
-      </View>
-    </ThemedView>
-  );
-
-  const renderFilters = () => (
-    <View style={styles.filtersContainer}>
-      {filters.map((filter) => (
-        <TouchableOpacity
-          key={filter.id}
-          onPress={() => setActiveFilter(filter.id)}
-          style={[
-            styles.filterButton,
-            activeFilter === filter.id && styles.activeFilterButton,
-          ]}
-        >
-          <ThemedText
-            style={[
-              styles.filterText,
-              activeFilter === filter.id && styles.activeFilterText,
-            ]}
-          >
-            {filter.label}
-          </ThemedText>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-
-  const renderAppointmentCard = (appointment) => (
-    <ThemedView key={appointment.id} style={styles.card}>
-      <View style={styles.cardContent}>
-        <View style={styles.header}>
-          <View style={styles.nameAndStatus}>
-            <ThemedText
-              type="subtitle"
-              style={[
-                styles.studentName,
-                { color: Colors.light.textGray[100] },
-              ]}
-            >
-              {appointment.student.name}
-            </ThemedText>
->>>>>>> 47ddf78 (updated appointments)
             <View
               style={[
                 styles.statusBadge,
@@ -482,28 +457,4 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[100],
     fontWeight: "500",
   },
-<<<<<<< HEAD
-=======
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  statusText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  priorityBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  priorityText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-  },
->>>>>>> 47ddf78 (updated appointments)
 });
