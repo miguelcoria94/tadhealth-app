@@ -193,7 +193,6 @@ export default function AppointmentsScreen() {
             </View>
           </View>
 
-          {/* Wrap badges inside a container for vertical stacking */}
           <View style={styles.badgeContainer}>
             <View
               style={[
