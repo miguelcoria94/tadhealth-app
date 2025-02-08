@@ -191,6 +191,10 @@ export default function AppointmentsScreen() {
                 {appointment.student.name}
               </ThemedText>
             </View>
+          </View>
+
+          {/* Wrap badges inside a container for vertical stacking */}
+          <View style={styles.badgeContainer}>
             <View
               style={[
                 styles.statusBadge,
@@ -201,17 +205,17 @@ export default function AppointmentsScreen() {
                 {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
               </ThemedText>
             </View>
-          </View>
 
-          <View
-            style={[
-              styles.priorityBadge,
-              { backgroundColor: getPriorityColor(appointment.priority) },
-            ]}
-          >
-            <ThemedText style={styles.priorityText}>
-              {appointment.priority.toUpperCase()} Priority
-            </ThemedText>
+            <View
+              style={[
+                styles.priorityBadge,
+                { backgroundColor: getPriorityColor(appointment.priority) },
+              ]}
+            >
+              <ThemedText style={styles.priorityText}>
+                {appointment.priority.toUpperCase()} Priority
+              </ThemedText>
+            </View>
           </View>
 
           <View style={styles.divider} />
@@ -247,6 +251,7 @@ export default function AppointmentsScreen() {
       </ThemedView>
     );
   };
+
 
   return (
     <ParallaxScrollView
@@ -397,12 +402,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    flexDirection: "row",
+    flexDirection: "row",  // This ensures the student info and badges are aligned horizontally
     justifyContent: "space-between",
+    alignItems: "center",  // Align items vertically in the center
   },
   nameAndStatus: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "row",  // This keeps the profile image and name side by side
+    alignItems: "center",  // Vertically center the profile image and name
+    flex: 1,  // Make sure this section takes up the available space
   },
   profileImage: {
     width: 40,
@@ -413,6 +420,12 @@ const styles = StyleSheet.create({
   studentName: {
     fontSize: 16,
     color: Colors.light.textGray[100],
+  },
+  badgeContainer: {
+    flexDirection: "column",  // Stack the badges vertically
+    justifyContent: "flex-start",
+    gap: 8,  // Space between the badges
+    alignItems: "flex-end",  // Align the badges to the right side of the container
   },
   statusBadge: {
     width: 110,
@@ -428,10 +441,9 @@ const styles = StyleSheet.create({
   },
   priorityBadge: {
     width: 150,
-    marginTop: 8,
     paddingVertical: 6,
     paddingHorizontal: 14,
-    borderRadius: 30,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },
