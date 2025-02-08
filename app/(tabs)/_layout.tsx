@@ -12,16 +12,42 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.light.tint, // Directly use light theme color
+        tabBarActiveTintColor: Colors.light.tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
             position: "absolute",
+            height: 88,
+            paddingBottom: 20,
+            borderTopWidth: 0,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: -2,
+            },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
           },
-          default: {},
+          default: {
+            height: 64,
+            paddingVertical: 8,
+            borderTopWidth: 0,
+            elevation: 8,
+          },
         }),
+        tabBarItemStyle: {
+          paddingVertical: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "500",
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginBottom: 2,
+        },
       }}
     >
       <Tabs.Screen
@@ -29,7 +55,7 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+            <IconSymbol size={24} name="house.fill" color={color} />
           ),
         }}
       />
@@ -38,14 +64,14 @@ export default function TabLayout() {
         options={{
           title: "Appointments",
           tabBarIcon: ({ color }) => (
-            <Feather name="calendar" size={28} color={color} />
+            <Feather name="calendar" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="studentlookup"
         options={{
-          title: "Student Lookup",
+          title: "Students",
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="person-search" size={24} color={color} />
           ),
@@ -56,7 +82,7 @@ export default function TabLayout() {
         options={{
           title: "Explore",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
+            <IconSymbol size={24} name="paperplane.fill" color={color} />
           ),
         }}
       />

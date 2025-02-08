@@ -1,13 +1,63 @@
+<<<<<<< HEAD
 import React from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
+=======
+import React, { useState } from "react";
+import {
+  Image,
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
+>>>>>>> 47ddf78 (updated appointments)
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { appointments } from "@/assets/dummyData/appointments";
 import { students } from "@/assets/dummyData/students";
 import { Colors } from "@/constants/Colors";
+import { Feather } from "@expo/vector-icons";
 
 export default function AppointmentsScreen() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  // Calculate stats
+  const stats = {
+    total: appointments.length,
+    completed: appointments.filter((a) => a.status === "completed").length,
+    pending: appointments.filter((a) => a.status === "pending").length,
+    today: appointments.filter((a) => {
+      const today = new Date().toISOString().split("T")[0];
+      return a.time.date === today;
+    }).length,
+  };
+
+  // Filter buttons data
+  const filters = [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "completed", label: "Completed" },
+    { id: "today", label: "Today" },
+  ];
+
+  // Filter appointments based on search and filter
+  const filteredAppointments = appointments.filter((appointment) => {
+    const matchesSearch =
+      appointment.student.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      appointment.type.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (activeFilter === "all") return matchesSearch;
+    if (activeFilter === "today") {
+      const today = new Date().toISOString().split("T")[0];
+      return matchesSearch && appointment.time.date === today;
+    }
+    return matchesSearch && appointment.status === activeFilter;
+  });
+
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
@@ -41,6 +91,7 @@ export default function AppointmentsScreen() {
     });
   };
 
+<<<<<<< HEAD
   // Define the images for boys and girls
   const boyImages = [
     require("@/assets/images/student-pp/boy1.jpg"),
@@ -87,6 +138,73 @@ export default function AppointmentsScreen() {
                 {appointment.student.name}
               </ThemedText>
             </View>
+=======
+  const renderStatsCard = () => (
+    <ThemedView variant="elevated" style={styles.statsCard}>
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <ThemedText type="title" style={styles.statNumber}>
+            {stats.total}
+          </ThemedText>
+          <ThemedText type="caption">Total</ThemedText>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <ThemedText type="title" style={styles.statNumber}>
+            {stats.today}
+          </ThemedText>
+          <ThemedText type="caption">Today</ThemedText>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <ThemedText type="title" style={styles.statNumber}>
+            {stats.pending}
+          </ThemedText>
+          <ThemedText type="caption">Pending</ThemedText>
+        </View>
+      </View>
+    </ThemedView>
+  );
+
+  const renderFilters = () => (
+    <View style={styles.filtersContainer}>
+      {filters.map((filter) => (
+        <TouchableOpacity
+          key={filter.id}
+          onPress={() => setActiveFilter(filter.id)}
+          style={[
+            styles.filterButton,
+            activeFilter === filter.id && styles.activeFilterButton,
+          ]}
+        >
+          <ThemedText
+            style={[
+              styles.filterText,
+              activeFilter === filter.id && styles.activeFilterText,
+            ]}
+          >
+            {filter.label}
+          </ThemedText>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderAppointmentCard = (appointment) => (
+    <ThemedView key={appointment.id} style={styles.card}>
+      <View style={styles.cardContent}>
+        <View style={styles.header}>
+          <View style={styles.nameAndStatus}>
+            <ThemedText
+              type="subtitle"
+              style={[
+                styles.studentName,
+                { color: Colors.light.textGray[100] },
+              ]}
+            >
+              {appointment.student.name}
+            </ThemedText>
+>>>>>>> 47ddf78 (updated appointments)
             <View
               style={[
                 styles.statusBadge,
@@ -152,24 +270,40 @@ export default function AppointmentsScreen() {
         dark: "#1D3D47",
       }}
       headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
+        <View style={styles.headerContent}>
+          <Image
+            source={require("@/assets/images/tad.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <ThemedText type="title" style={styles.headerTitle}>
+            Appointments
+          </ThemedText>
+        </View>
       }
     >
       <View style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText
-            type="title"
-            style={{ color: Colors.light.textGray[100] }}
-          >
-            Appointments
-          </ThemedText>
+        {/* Search Bar */}
+        <ThemedView variant="elevated" style={styles.searchContainer}>
+          <Feather name="search" size={20} color={Colors.light.textGray[300]} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search appointments..."
+            placeholderTextColor={Colors.light.textGray[300]}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </ThemedView>
 
+        {/* Stats Card */}
+        {renderStatsCard()}
+
+        {/* Filters */}
+        {renderFilters()}
+
+        {/* Appointments List */}
         <View style={styles.listContainer}>
-          {appointments.map(renderAppointmentCard)}
+          {filteredAppointments.map(renderAppointmentCard)}
         </View>
       </View>
     </ParallaxScrollView>
@@ -182,11 +316,78 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: Colors.light.background,
   },
-  titleContainer: {
+  headerContent: {
+    flex: 1,
+    justifyContent: "flex-end",
+    padding: 20,
+    alignItems: "flex-start",
+  },
+  logo: {
+    width: 150,
+    height: 40,
+    marginBottom: 20,
+    tintColor: Colors.light.background,
+  },
+  headerTitle: {
+    color: Colors.light.background,
+    marginBottom: 20,
+  },
+  searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
-    paddingHorizontal: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderRadius: 12,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+  },
+  statsCard: {
+    marginBottom: 16,
+    padding: 16,
+  },
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+  },
+  statItem: {
+    alignItems: "center",
+  },
+  statNumber: {
+    color: Colors.light.green[100],
+    marginBottom: 4,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: Colors.light.textGray[500],
+    opacity: 0.2,
+  },
+  filtersContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.light.textGray[500] + "10",
+  },
+  activeFilterButton: {
+    backgroundColor: Colors.light.green[200],
+  },
+  filterText: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  activeFilterText: {
+    color: Colors.light.background,
+    fontWeight: "600",
   },
   listContainer: {
     gap: 16,
@@ -281,4 +482,28 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[100],
     fontWeight: "500",
   },
+<<<<<<< HEAD
+=======
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  statusText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  priorityBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  priorityText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+>>>>>>> 47ddf78 (updated appointments)
 });
