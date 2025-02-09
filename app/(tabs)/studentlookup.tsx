@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Image, StyleSheet, View, TextInput } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  View,
+  TextInput,
+  Pressable,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -53,34 +60,45 @@ function getProfileImage(student: { id: number; gender: string }) {
 
 export default function StudentLookupScreen() {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigation = useNavigation();
 
+  // Filter the students by name
   const filteredStudents = students.filter((student) =>
     student.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleCardPress = (studentId: number) => {
+    // Navigate to the student detail screen with a param
+    navigation.navigate("StudentDetailScreen", { studentId });
+  };
 
   const renderStudentCard = (student: any) => {
     const profileImage = getProfileImage(student);
 
     return (
-      <ThemedView key={student.id} style={styles.card}>
-        {profileImage ? (
-          <Image source={profileImage} style={styles.profileImage} />
-        ) : (
-          <ThemedText style={styles.noImageText}>No Image</ThemedText>
-        )}
-
-        <ThemedText
-          style={styles.studentName}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {student.name}
-        </ThemedText>
-
-        <ThemedText style={styles.grade} numberOfLines={1} ellipsizeMode="tail">
-          Grade: {student.grade}
-        </ThemedText>
-      </ThemedView>
+      <Pressable
+        key={student.id}
+        style={styles.pressableArea}
+        onPress={() => handleCardPress(student.id)}
+      >
+        <ThemedView style={styles.card}>
+          {profileImage ? (
+            <Image source={profileImage} style={styles.profileImage} />
+          ) : (
+            <ThemedText style={styles.noImageText}>No Image</ThemedText>
+          )}
+          <ThemedText
+            style={styles.studentName}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {student.name}
+          </ThemedText>
+          <ThemedText style={styles.grade} numberOfLines={1} ellipsizeMode="tail">
+            Grade: {student.grade}
+          </ThemedText>
+        </ThemedView>
+      </Pressable>
     );
   };
 
@@ -113,7 +131,7 @@ export default function StudentLookupScreen() {
           />
         </ThemedView>
 
-        {/* Grid of Student Cards */}
+        {/* Grid of Student Cards (two columns) */}
         <View style={styles.grid}>
           {filteredStudents.length > 0 ? (
             filteredStudents.map(renderStudentCard)
@@ -127,6 +145,10 @@ export default function StudentLookupScreen() {
 }
 
 const styles = StyleSheet.create({
+  pressableArea: {
+    width: "48%",
+    marginBottom: 16,
+  },
   // Main container below the parallax header
   container: {
     flex: 1,
@@ -169,18 +191,16 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    // 'gap' might not be supported by your RN version, so manual margins:
     justifyContent: "space-between",
   },
   card: {
-    width: "48%", // 2 columns
     height: 160,
     borderRadius: 16,
     backgroundColor: Colors.light.background,
 
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16, // manual vertical spacing
+    paddingHorizontal: 8,
 
     // Shadow/elevation
     shadowColor: Colors.light.textGray[100],
@@ -213,4 +233,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
