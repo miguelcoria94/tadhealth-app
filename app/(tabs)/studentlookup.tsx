@@ -1,15 +1,14 @@
-import React from "react";
-import { Image, StyleSheet, View, Text } from "react-native";
+import React, { useState } from "react";
+import { Image, StyleSheet, View, TextInput } from "react-native";
 
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
-
-// You can import the students array from the same file where appointments are:
+import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { students } from "@/assets/dummyData/appointments";
+import { Colors } from "@/constants/Colors";
+import { Feather } from "@expo/vector-icons";
 
-// Replicate the same images used in appointments.tsx
+// Boy and Girl Images
 const boyImages = [
   require("@/assets/images/student-pp/boy1.jpg"),
   require("@/assets/images/student-pp/boy2.jpg"),
@@ -17,7 +16,6 @@ const boyImages = [
   require("@/assets/images/student-pp/boy4.jpg"),
   require("@/assets/images/student-pp/boy5.jpg"),
 ];
-
 const girlImages = [
   require("@/assets/images/student-pp/girl1.jpg"),
   require("@/assets/images/student-pp/girl2.jpg"),
@@ -29,61 +27,99 @@ const girlImages = [
 function getProfileImage(student: { id: number; gender: string }) {
   switch (student.id) {
     case 101:
-      return boyImages[0]; // boy1
+      return boyImages[0];
     case 102:
-      return girlImages[0]; // girl1
+      return girlImages[0];
     case 103:
-      return boyImages[1]; // boy2
+      return boyImages[1];
     case 104:
-      return girlImages[1]; // girl2
+      return girlImages[1];
     case 105:
-      return boyImages[2]; // boy3
+      return boyImages[2];
     case 106:
-      return girlImages[2]; // girl3
+      return girlImages[2];
     case 107:
-      return boyImages[3]; // boy4
+      return boyImages[3];
     case 108:
-      return girlImages[3]; // girl4
+      return girlImages[3];
     case 109:
-      return boyImages[4]; // boy5
+      return boyImages[4];
     case 110:
-      return girlImages[4]; // girl5
+      return girlImages[4];
     default:
-      return null; // fallback
+      return null;
   }
 }
 
-export default function studentlookup() {
+export default function StudentLookupScreen() {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredStudents = students.filter((student) =>
+    student.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const renderStudentCard = (student: any) => {
+    const profileImage = getProfileImage(student);
+
+    return (
+      <ThemedView key={student.id} style={styles.card}>
+        {profileImage ? (
+          <Image source={profileImage} style={styles.profileImage} />
+        ) : (
+          <ThemedText style={styles.noImageText}>No Image</ThemedText>
+        )}
+
+        <ThemedText
+          style={styles.studentName}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {student.name}
+        </ThemedText>
+
+        <ThemedText style={styles.grade} numberOfLines={1} ellipsizeMode="tail">
+          Grade: {student.grade}
+        </ThemedText>
+      </ThemedView>
+    );
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: Colors.light.green[200], dark: "#1D3D47" }}
       headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
+        <View style={styles.headerContent}>
+          <Image
+            source={require("@/assets/images/tad.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <ThemedText type="title" style={styles.headerTitle}>
+            Students
+          </ThemedText>
+        </View>
       }
     >
       <View style={styles.container}>
-        <ThemedText type="title" style={styles.screenTitle}>
-          Student Lookup
-        </ThemedText>
+        {/* Search Bar */}
+        <ThemedView variant="elevated" style={styles.searchContainer}>
+          <Feather name="search" size={20} color={Colors.light.textGray[300]} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search students..."
+            placeholderTextColor={Colors.light.textGray[300]}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </ThemedView>
 
+        {/* Grid of Student Cards */}
         <View style={styles.grid}>
-          {students.map((student) => {
-            const profileImage = getProfileImage(student);
-
-            return (
-              <ThemedView key={student.id} variant="elevated" style={styles.card}>
-                {profileImage ? (
-                  <Image source={profileImage} style={styles.profileImage} />
-                ) : (
-                  <Text style={styles.placeholderText}>No Image</Text>
-                )}
-                <ThemedText style={styles.studentName}>{student.name}</ThemedText>
-              </ThemedView>
-            );
-          })}
+          {filteredStudents.length > 0 ? (
+            filteredStudents.map(renderStudentCard)
+          ) : (
+            <ThemedText>No students found.</ThemedText>
+          )}
         </View>
       </View>
     </ParallaxScrollView>
@@ -91,47 +127,90 @@ export default function studentlookup() {
 }
 
 const styles = StyleSheet.create({
+  // Main container below the parallax header
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,
     padding: 16,
   },
-  screenTitle: {
+  headerContent: {
+    flex: 1,
+    justifyContent: "flex-end",
+    padding: 20,
+    alignItems: "flex-start",
+  },
+  logo: {
+    width: 150,
+    height: 40,
+    marginBottom: 20,
+    tintColor: Colors.light.background,
+  },
+  headerTitle: {
+    color: Colors.light.background,
+    marginBottom: 20,
+  },
+
+  // Search Bar
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
     marginBottom: 16,
+    borderRadius: 12,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 16,
     color: Colors.light.textGray[100],
   },
+
+  // 2-column layout for the cards
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    // 'gap' might not be supported by your RN version, so manual margins:
     justifyContent: "space-between",
   },
   card: {
-    width: "30%", // 3 cards per row
-    borderRadius: 12,
-    marginBottom: 16,
+    width: "48%", // 2 columns
+    height: 160,
+    borderRadius: 16,
+    backgroundColor: Colors.light.background,
+
     alignItems: "center",
-    padding: 8,
+    justifyContent: "center",
+    marginBottom: 16, // manual vertical spacing
+
+    // Shadow/elevation
+    shadowColor: Colors.light.textGray[100],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
   },
   profileImage: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 8,
     marginBottom: 8,
   },
-  studentName: {
-    fontSize: 14,
-    color: Colors.light.textGray[100],
-  },
-  placeholderText: {
-    fontSize: 12,
+  noImageText: {
     color: Colors.light.textGray[300],
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+  studentName: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+    marginBottom: 4,
+    maxWidth: "90%",
+    textAlign: "center",
+  },
+  grade: {
+    fontSize: 14,
+    color: Colors.light.textGray[400],
+    maxWidth: "90%",
+    textAlign: "center",
   },
 });
+
