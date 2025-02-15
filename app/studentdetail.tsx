@@ -1,13 +1,72 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, View, StyleSheet, Image, ScrollView, SafeAreaView } from "react-native";
+import { 
+  Pressable, 
+  View, 
+  StyleSheet, 
+  Image, 
+  ScrollView, 
+  SafeAreaView,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert
+} from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
-import { students } from "@/assets/dummyData/appointments";
+import { students, appointments } from "@/assets/dummyData/appointments";
 
-// Boy and Girl Images
+// Types
+interface Note {
+  title: string;
+  body: string;
+  date: string;
+  appointmentId: number | null;
+}
+
+interface Student {
+  id: number;
+  name: string;
+  age: number;
+  grade: number;
+  gender: string;
+  mentalState: string;
+  appointments: number[];
+  parentConsent: boolean;
+  studentConsent: boolean;
+  totalAppointments: number;
+}
+
+interface Appointment {
+  id: number;
+  student: {
+    id: number;
+    name: string;
+  };
+  counselor: {
+    id: number;
+    name: string;
+    specialization: string;
+  };
+  time: {
+    date: string;
+    time: string;
+    location: string;
+  };
+  type: string;
+  status: string;
+  priority: string;
+  notes: {
+    title: string;
+    body: string;
+    date?: string;
+  }[];
+}
+
+// Image imports
 const boyImages = [
   require("@/assets/images/student-pp/boy1.jpg"),
   require("@/assets/images/student-pp/boy2.jpg"),
@@ -40,13 +99,75 @@ function getProfileImage(student: { id: number; gender: string }) {
   }
 }
 
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: 'user' },
+  { id: 'sessions', label: 'Sessions', icon: 'calendar' },
+  { id: 'attendance', label: 'Attendance', icon: 'check-square' },
+  { id: 'notes', label: 'Notes', icon: 'file-text' },
+] as const;
+
+type TabId = typeof TABS[number]['id'];
+
+// Mental state colors
+const getMentalStateColor = (state: string) => {
+  switch (state.toLowerCase()) {
+    case 'green': return Colors.light.success;
+    case 'yellow': return Colors.light.warning;
+    case 'orange': return Colors.light.orange[100];
+    case 'red': return Colors.light.pink[100];
+    default: return Colors.light.textGray[300];
+  }
+};
+
 export default function StudentDetailScreen() {
   const router = useRouter();
   const { studentId } = useLocalSearchParams();
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [newNote, setNewNote] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAddingNote, setIsAddingNote] = useState(false);
 
   // Convert to a number
   const idNumber = studentId ? parseInt(studentId.toString(), 10) : NaN;
   const student = students.find((s) => s.id === idNumber);
+  const studentAppointments = appointments.filter(
+    (apt) => apt.student.id === idNumber
+  );
+
+  // Get all notes from appointments and sort by date
+  const allNotes = studentAppointments.reduce((acc, apt) => {
+    return [...acc, ...apt.notes.map(note => ({
+      ...note,
+      appointmentId: apt.id,
+      date: note.date || apt.time.date
+    }))];
+  }, [] as Note[]).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const [localNotes, setLocalNotes] = useState<Note[]>(allNotes);
+
+  const handleAddNote = useCallback(async () => {
+    if (!newNote.trim()) return;
+
+    setIsAddingNote(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const newNoteObj: Note = {
+        title: "Counselor Note",
+        body: newNote,
+        date: new Date().toISOString(),
+        appointmentId: null,
+      };
+
+      setLocalNotes(prev => [newNoteObj, ...prev]);
+      setNewNote('');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add note. Please try again.');
+    } finally {
+      setIsAddingNote(false);
+    }
+  }, [newNote]);
 
   if (!student) {
     return (
@@ -64,24 +185,369 @@ export default function StudentDetailScreen() {
 
   const profileImage = getProfileImage(student);
 
-  const renderInfoCard = (title: string, items: { label: string; value: string | number }[]) => (
-    <ThemedView variant="elevated" style={styles.infoCard}>
-      <ThemedText type="subtitle" style={styles.cardTitle}>{title}</ThemedText>
-      {items.map((item, index) => (
-        <View key={index} style={styles.infoRow}>
-          <ThemedText style={styles.label}>{item.label}</ThemedText>
-          <ThemedText style={styles.value}>{item.value}</ThemedText>
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
+  const renderOverviewTab = () => (
+    <View>
+      {/* Mental State Indicator */}
+      <ThemedView variant="elevated" style={styles.mentalStateCard}>
+        <ThemedText type="subtitle">Mental State</ThemedText>
+        <View style={styles.mentalStateContainer}>
+          <View style={[
+            styles.mentalStateIndicator,
+            { backgroundColor: getMentalStateColor(student.mentalState) }
+          ]} />
+          <ThemedText style={styles.mentalStateText}>
+            {student.mentalState.toUpperCase()}
+          </ThemedText>
         </View>
-      ))}
-    </ThemedView>
+      </ThemedView>
+
+      {/* Quick Stats Grid */}
+      <View style={styles.statsGrid}>
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statValue}>{student.totalAppointments}</ThemedText>
+          <ThemedText style={styles.statLabel}>Total Sessions</ThemedText>
+        </View>
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statValue}>
+            {student.parentConsent && student.studentConsent ? 'Yes' : 'No'}
+          </ThemedText>
+          <ThemedText style={styles.statLabel}>Consent Status</ThemedText>
+        </View>
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statValue}>{student.grade}</ThemedText>
+          <ThemedText style={styles.statLabel}>Grade Level</ThemedText>
+        </View>
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statValue}>{student.age}</ThemedText>
+          <ThemedText style={styles.statLabel}>Age</ThemedText>
+        </View>
+      </View>
+
+      {/* Personal Information */}
+      <ThemedView variant="elevated" style={styles.infoCard}>
+        <ThemedText type="subtitle" style={styles.cardTitle}>Personal Information</ThemedText>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Student ID</ThemedText>
+          <ThemedText style={styles.value}>{student.id}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Gender</ThemedText>
+          <ThemedText style={styles.value}>{student.gender}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Grade Level</ThemedText>
+          <ThemedText style={styles.value}>{student.grade}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Consent Status</ThemedText>
+          <ThemedText style={styles.value}>
+            {student.parentConsent && student.studentConsent ? 'Complete' : 'Incomplete'}
+          </ThemedText>
+        </View>
+      </ThemedView>
+
+      {/* Recent Activity */}
+      <ThemedView variant="elevated" style={styles.infoCard}>
+        <ThemedText type="subtitle" style={styles.cardTitle}>Recent Activity</ThemedText>
+        {studentAppointments.slice(0, 3).map((apt) => (
+          <View key={apt.id} style={styles.activityItem}>
+            <View style={styles.activityIcon}>
+              <Feather 
+                name={apt.status === 'completed' ? 'check-circle' : 'clock'} 
+                size={20} 
+                color={apt.status === 'completed' ? Colors.light.success : Colors.light.warning}
+              />
+            </View>
+            <View style={styles.activityContent}>
+              <ThemedText style={styles.activityTitle}>{apt.type}</ThemedText>
+              <ThemedText style={styles.activityTime}>
+                {formatDate(apt.time.date)} at {apt.time.time}
+              </ThemedText>
+            </View>
+          </View>
+        ))}
+      </ThemedView>
+    </View>
   );
+
+  const renderSessionsTab = () => (
+    <View>
+      {/* Upcoming Sessions */}
+      <ThemedText type="subtitle" style={styles.sectionTitle}>Upcoming Sessions</ThemedText>
+      {studentAppointments
+        .filter(apt => apt.status === 'pending')
+        .map((appointment) => (
+          <ThemedView key={appointment.id} variant="elevated" style={styles.sessionCard}>
+            <View style={styles.sessionHeader}>
+              <View>
+                <ThemedText type="subtitle">{appointment.type}</ThemedText>
+                <ThemedText style={styles.sessionTime}>
+                  {formatDate(appointment.time.date)} at {formatTime(appointment.time.time)}
+                </ThemedText>
+              </View>
+              <ThemedView 
+                style={[
+                  styles.priorityBadge,
+                  { backgroundColor: getPriorityColor(appointment.priority) }
+                ]}
+              >
+                <ThemedText style={styles.priorityText}>
+                  {appointment.priority.toUpperCase()}
+                </ThemedText>
+              </ThemedView>
+            </View>
+            <View style={styles.sessionDetails}>
+              <View style={styles.detailRow}>
+                <ThemedText style={styles.label}>Location</ThemedText>
+                <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
+              </View>
+              <View style={styles.detailRow}>
+                <ThemedText style={styles.label}>Counselor</ThemedText>
+                <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
+              </View>
+              <View style={styles.detailRow}>
+                <ThemedText style={styles.label}>Specialization</ThemedText>
+                <ThemedText style={styles.value}>{appointment.counselor.specialization}</ThemedText>
+              </View>
+            </View>
+          </ThemedView>
+        ))}
+
+      {/* Past Sessions */}
+      <ThemedText type="subtitle" style={[styles.sectionTitle, { marginTop: 24 }]}>
+        Past Sessions
+      </ThemedText>
+      {studentAppointments
+        .filter(apt => apt.status === 'completed')
+        .map((appointment) => (
+          <ThemedView key={appointment.id} variant="elevated" style={styles.sessionCard}>
+            <View style={styles.sessionHeader}>
+              <View>
+                <ThemedText type="subtitle">{appointment.type}</ThemedText>
+                <ThemedText style={styles.sessionTime}>
+                  {formatDate(appointment.time.date)} at {formatTime(appointment.time.time)}
+                </ThemedText>
+              </View>
+              <ThemedView 
+                style={[styles.statusBadge, { backgroundColor: Colors.light.success }]}
+              >
+                <ThemedText style={styles.statusText}>Completed</ThemedText>
+              </ThemedView>
+            </View>
+            <View style={styles.sessionDetails}>
+              <View style={styles.detailRow}>
+                <ThemedText style={styles.label}>Location</ThemedText>
+                <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
+              </View>
+              <View style={styles.detailRow}>
+                <ThemedText style={styles.label}>Counselor</ThemedText>
+                <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
+              </View>
+              {appointment.notes.length > 0 && (
+                <View style={styles.sessionNotes}>
+                  <ThemedText style={styles.label}>Session Notes</ThemedText>
+                  {appointment.notes.map((note, index) => (
+                    <ThemedText key={index} style={styles.sessionNote}>
+                      {note.body}
+                    </ThemedText>
+                  ))}
+                </View>
+              )}
+            </View>
+          </ThemedView>
+        ))}
+    </View>
+  );
+
+  const renderAttendanceTab = () => (
+    <View>
+      {/* Attendance Overview */}
+      <ThemedView variant="elevated" style={styles.attendanceCard}>
+        <View style={styles.attendanceHeader}>
+          <ThemedText type="subtitle">Attendance Overview</ThemedText>
+          <View style={styles.attendanceRate}>
+            <ThemedText style={styles.attendancePercentage}>
+              {Math.round((studentAppointments.filter(apt => apt.status === 'completed').length / 
+                studentAppointments.length) * 100)}%
+            </ThemedText>
+            <ThemedText style={styles.attendanceLabel}>Attendance Rate</ThemedText>
+          </View>
+        </View>
+        
+        <View style={styles.attendanceStats}>
+          <View style={styles.attendanceStatItem}>
+            <ThemedText style={styles.statValue}>
+              {studentAppointments.filter(apt => apt.status === 'completed').length}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>Attended</ThemedText>
+          </View>
+          <View style={styles.attendanceStatItem}>
+            <ThemedText style={styles.statValue}>
+              {studentAppointments.filter(apt => apt.status === 'pending').length}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>Upcoming</ThemedText>
+          </View>
+          <View style={styles.attendanceStatItem}>
+            <ThemedText style={styles.statValue}>
+              {studentAppointments.filter(apt => apt.status === 'missed').length || 0}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>Missed</ThemedText>
+          </View>
+        </View>
+      </ThemedView>
+
+      {/* Monthly Breakdown */}
+      <ThemedView variant="elevated" style={styles.monthlyBreakdown}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Monthly Breakdown</ThemedText>
+        <View style={styles.monthlyStats}>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <View key={index} style={styles.monthItem}>
+              <ThemedText style={styles.monthName}>
+                {new Date(Date.now() - index * 30 * 24 * 60 * 60 * 1000)
+                  .toLocaleString('default', { month: 'short' })}
+              </ThemedText>
+              <View style={styles.monthBar}>
+                <View 
+                  style={[
+                    styles.monthBarFill, 
+                    { width: `${90 - index * 10}%` }
+                  ]} 
+                />
+              </View>
+              <ThemedText style={styles.monthPercentage}>
+                {90 - index * 10}%
+              </ThemedText>
+            </View>
+          ))}
+        </View>
+      </ThemedView>
+
+      {/* Session History */}
+      <ThemedView variant="elevated" style={styles.sessionHistory}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Session History</ThemedText>
+        {studentAppointments.map((appointment) => (
+          <View key={appointment.id} style={styles.historyItem}>
+            <View style={styles.historyDate}>
+              <ThemedText style={styles.historyDay}>
+                {new Date(appointment.time.date).getDate()}
+              </ThemedText>
+              <ThemedText style={styles.historyMonth}>
+                {new Date(appointment.time.date).toLocaleString('default', { month: 'short' })}
+              </ThemedText>
+            </View>
+            <View style={styles.historyDetails}>
+              <ThemedText style={styles.historyType}>{appointment.type}</ThemedText>
+              <ThemedText style={styles.historyTime}>{appointment.time.time}</ThemedText>
+            </View>
+            <View 
+              style={[
+                styles.historyStatus,
+                { backgroundColor: appointment.status === 'completed' ? 
+                  Colors.light.success : Colors.light.warning }
+              ]}
+            />
+          </View>
+        ))}
+      </ThemedView>
+    </View>
+  );
+  
+  const renderNotesTab = () => (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.notesContainer}
+    >
+      {/* Add Note */}
+      <ThemedView variant="elevated" style={styles.addNoteCard}>
+        <TextInput
+          style={styles.noteInput}
+          placeholder="Add a new note..."
+          placeholderTextColor={Colors.light.textGray[300]}
+          value={newNote}
+          onChangeText={setNewNote}
+          multiline
+          numberOfLines={4}
+        />
+        <Pressable 
+          style={[
+            styles.addNoteButton,
+            !newNote.trim() && styles.addNoteButtonDisabled
+          ]}
+          onPress={handleAddNote}
+          disabled={!newNote.trim() || isAddingNote}
+        >
+          {isAddingNote ? (
+            <ActivityIndicator color={Colors.light.background} />
+          ) : (
+            <>
+              <Feather name="plus" size={20} color={Colors.light.background} />
+              <ThemedText style={styles.addNoteButtonText}>Add Note</ThemedText>
+            </>
+          )}
+        </Pressable>
+      </ThemedView>
+
+      {/* Notes List */}
+      <ScrollView>
+        {localNotes.map((note, index) => (
+          <ThemedView key={index} variant="elevated" style={styles.noteCard}>
+            <View style={styles.noteHeader}>
+              <ThemedText type="subtitle">{note.title}</ThemedText>
+              <ThemedText style={styles.noteDate}>
+                {formatDate(note.date)}
+              </ThemedText>
+            </View>
+            <ThemedText style={styles.noteBody}>{note.body}</ThemedText>
+            {note.appointmentId && (
+              <View style={styles.noteFooter}>
+                <Feather name="paperclip" size={16} color={Colors.light.textGray[300]} />
+                <ThemedText style={styles.noteAttachment}>
+                  Attached to session on {formatDate(note.date)}
+                </ThemedText>
+              </View>
+            )}
+          </ThemedView>
+        ))}
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+
+  const renderActiveTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return renderOverviewTab();
+      case 'sessions':
+        return renderSessionsTab();
+      case 'attendance':
+        return renderAttendanceTab();
+      case 'notes':
+        return renderNotesTab();
+      default:
+        return renderOverviewTab();
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Feather name="arrow-left" size={24} color={Colors.light.green[100]} />
+          <Feather name="arrow-left" size={24} color={Colors.light.background} />
         </Pressable>
         <View style={styles.headerContent}>
           {profileImage && (
@@ -93,94 +559,49 @@ export default function StudentDetailScreen() {
         </View>
       </View>
 
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        {TABS.map((tab) => (
+          <Pressable
+            key={tab.id}
+            style={[
+              styles.tab,
+              activeTab === tab.id && styles.activeTab
+            ]}
+            onPress={() => setActiveTab(tab.id)}
+          >
+            <Feather 
+              name={tab.icon} 
+              size={20} 
+              color={activeTab === tab.id ? 
+                Colors.light.green[200] : 
+                Colors.light.textGray[300]
+              } 
+            />
+            <ThemedText
+              style={[
+                styles.tabText,
+                activeTab === tab.id && styles.activeTabText
+              ]}
+            >
+              {tab.label}
+            </ThemedText>
+          </Pressable>
+        ))}
+      </View>
+
       {/* Content */}
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Status Badges */}
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusBadge, { backgroundColor: Colors.light.success }]}>
-            <ThemedText style={styles.statusText}>Active</ThemedText>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+      >
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.light.green[200]} />
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: Colors.light.green[100] }]}>
-            <ThemedText style={styles.statusText}>Grade {student.grade}</ThemedText>
-          </View>
-        </View>
-
-        {/* Quick Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statValue}>8</ThemedText>
-            <ThemedText style={styles.statLabel}>Sessions</ThemedText>
-          </View>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statValue}>3.8</ThemedText>
-            <ThemedText style={styles.statLabel}>GPA</ThemedText>
-          </View>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statValue}>95%</ThemedText>
-            <ThemedText style={styles.statLabel}>Attendance</ThemedText>
-          </View>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statValue}>12th</ThemedText>
-            <ThemedText style={styles.statLabel}>Class Rank</ThemedText>
-          </View>
-        </View>
-
-        {/* Info Cards */}
-        {renderInfoCard("Personal Information", [
-          { label: "Student ID", value: student.id },
-          { label: "Gender", value: student.gender },
-          { label: "Grade Level", value: student.grade },
-          { label: "Academic Year", value: "2023-2024" },
-        ])}
-
-        {renderInfoCard("Counseling History", [
-          { label: "First Session", value: "2023-09-15" },
-          { label: "Last Session", value: "2024-02-10" },
-          { label: "Next Session", value: "2024-02-24" },
-          { label: "Session Frequency", value: "Bi-weekly" },
-        ])}
-
-        {/* Notes Section */}
-        <ThemedView variant="elevated" style={styles.infoCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>Counselor Notes</ThemedText>
-          <ThemedText style={styles.notes}>
-            Student has shown significant progress in managing academic stress. 
-            Regular check-ins have been helpful in maintaining positive momentum.
-            Continue to monitor study habits and social integration.
-          </ThemedText>
-        </ThemedView>
-
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
-          <Pressable 
-            style={styles.actionButton}
-            onPress={() => console.log('Schedule session')}
-          >
-            <Feather name="calendar" size={20} color={Colors.light.background} />
-            <ThemedText style={styles.actionButtonText}>Schedule Session</ThemedText>
-          </Pressable>
-        </View>
-
-        <View style={styles.actionsContainer}>
-          <Pressable 
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={() => console.log('View records')}
-          >
-            <Feather name="file-text" size={20} color={Colors.light.textGray[100]} />
-            <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
-              View Records
-            </ThemedText>
-          </Pressable>
-          <Pressable 
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={() => console.log('Contact parent')}
-          >
-            <Feather name="mail" size={20} color={Colors.light.textGray[100]} />
-            <ThemedText style={[styles.actionButtonText, styles.secondaryButtonText]}>
-              Contact Parent
-            </ThemedText>
-          </Pressable>
-        </View>
+        ) : (
+          renderActiveTabContent()
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -217,22 +638,83 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     textAlign: "center",
   },
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.light.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.textGray[500] + "20",
+    paddingHorizontal: 8,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.light.green[200],
+  },
+  tabText: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  activeTabText: {
+    color: Colors.light.green[200],
+    fontWeight: '600',
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
   },
-  notFoundContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.light.background,
+  mentalStateCard: {
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 12,
   },
-  backButtonText: {
-    color: Colors.light.green[200],
-    fontSize: 16,
+  mentalStateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
+  },
+  mentalStateIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  mentalStateText: {
+    fontSize: 14,
+    color: Colors.light.textGray[100],
+    fontWeight: '500',
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 16,
+  },
+  statItem: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: Colors.light.textGray[500] + "10",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  statValue: {
+    fontSize: 24,
     fontWeight: "600",
+    color: Colors.light.green[100],
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
   },
   infoCard: {
     padding: 16,
@@ -259,75 +741,278 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-  notes: {
-    color: Colors.light.textGray[100],
-    fontSize: 14,
-    lineHeight: 20,
-    paddingVertical: 8,
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.textGray[500] + "20",
   },
-  statusContainer: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 16,
+  activityIcon: {
+    marginRight: 12,
   },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusText: {
-    color: Colors.light.background,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 16,
-  },
-  statItem: {
+  activityContent: {
     flex: 1,
-    minWidth: "45%",
-    backgroundColor: Colors.light.textGray[500] + "10",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: Colors.light.green[100],
+  activityTitle: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
     marginBottom: 4,
   },
-  statLabel: {
+  activityTime: {
     fontSize: 14,
     color: Colors.light.textGray[300],
   },
-  actionsContainer: {
-    flexDirection: "row",
-    gap: 12,
+  sectionTitle: {
     marginBottom: 16,
+    color: Colors.light.textGray[100],
   },
-  actionButton: {
-    flex: 1,
-    backgroundColor: Colors.light.green[200],
+  sessionCard: {
+    marginBottom: 16,
     padding: 16,
     borderRadius: 12,
+  },
+  sessionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 16,
+  },
+  sessionTime: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+    marginTop: 4,
+  },
+  sessionDetails: {
+    gap: 12,
+  },
+  priorityBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  priorityText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.light.textGray[100],
+  },
+  sessionNotes: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.textGray[500] + "20",
+  },
+  sessionNote: {
+    color: Colors.light.textGray[100],
+    fontSize: 14,
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  attendanceCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  attendanceHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  attendanceRate: {
+    alignItems: 'center',
+  },
+  attendancePercentage: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: Colors.light.success,
+  },
+  attendanceLabel: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+    marginTop: 4,
+  },
+  attendanceStats: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 16,
+  },
+  attendanceStatItem: {
+    alignItems: "center",
+  },
+  monthlyBreakdown: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  monthlyStats: {
+    marginTop: 16,
+  },
+  monthItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  monthName: {
+    width: 50,
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  monthBar: {
+    flex: 1,
+    height: 8,
+    backgroundColor: Colors.light.textGray[500] + "20",
+    borderRadius: 4,
+    marginHorizontal: 12,
+  },
+  monthBarFill: {
+    height: "100%",
+    backgroundColor: Colors.light.green[200],
+    borderRadius: 4,
+  },
+  monthPercentage: {
+    width: 40,
+    fontSize: 14,
+    color: Colors.light.textGray[100],
+    textAlign: "right",
+  },
+  sessionHistory: {
+    padding: 16,
+    borderRadius: 12,
+  },
+  historyItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.textGray[500] + "20",
+  },
+  historyDate: {
+    width: 50,
+    alignItems: "center",
+  },
+  historyDay: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.light.textGray[100],
+  },
+  historyMonth: {
+    fontSize: 12,
+    color: Colors.light.textGray[300],
+  },
+  historyDetails: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  historyType: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+    marginBottom: 4,
+  },
+  historyTime: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  historyStatus: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 16,
+  },
+  notesContainer: {
+    flex: 1,
+  },
+  addNoteCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  noteInput: {
+    minHeight: 100,
+    backgroundColor: Colors.light.textGray[500] + "10",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    color: Colors.light.textGray[100],
+    fontSize: 16,
+    textAlignVertical: "top",
+  },
+  addNoteButton: {
+    backgroundColor: Colors.light.green[200],
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
+    padding: 12,
+    borderRadius: 8,
     gap: 8,
   },
-  actionButtonText: {
+  addNoteButtonDisabled: {
+    opacity: 0.5,
+  },
+  addNoteButtonText: {
     color: Colors.light.background,
     fontSize: 16,
     fontWeight: "600",
   },
-  secondaryButton: {
-    backgroundColor: Colors.light.textGray[500] + "20",
+  noteCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
   },
-  secondaryButtonText: {
+  noteHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  noteDate: {
+    color: Colors.light.textGray[300],
+    fontSize: 14,
+  },
+  noteBody: {
     color: Colors.light.textGray[100],
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  noteFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.textGray[500] + "20",
+    gap: 8,
+  },
+  noteAttachment: {
+    color: Colors.light.textGray[300],
+    fontSize: 14,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  notFoundContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.light.background,
+  },
+  backButtonText: {
+    color: Colors.light.green[200],
+    fontSize: 16,
+    fontWeight: "600",
+    marginTop: 12,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  statusText: {
+    color: Colors.light.background,
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
