@@ -119,6 +119,15 @@ const getMentalStateColor = (state: string) => {
   }
 };
 
+const getPriorityColor = (priority: string) => {
+  switch (priority.toLowerCase()) {
+    case 'high': return Colors.light.pink[100];
+    case 'medium': return Colors.light.orange[100];
+    case 'low': return Colors.light.mint[100];
+    default: return Colors.light.textGray[300];
+  }
+};
+
 export default function StudentDetailScreen() {
   const router = useRouter();
   const { studentId } = useLocalSearchParams();
@@ -542,6 +551,20 @@ export default function StudentDetailScreen() {
     }
   };
 
+  if (!student) {
+    return (
+      <SafeAreaView style={styles.notFoundContainer}>
+        <ThemedText>No student found.</ThemedText>
+        <Pressable 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <ThemedText style={styles.backButtonText}>Go Back</ThemedText>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
@@ -670,6 +693,24 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  notFoundContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.light.background,
+  },
+  backButtonText: {
+    color: Colors.light.green[200],
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 12,
   },
   mentalStateCard: {
     padding: 16,
