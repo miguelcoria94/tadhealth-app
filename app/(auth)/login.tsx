@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  ImageBackground,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { authService } from "../../services/auth.service";
@@ -42,80 +43,100 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-      >
-        <View style={styles.content}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("../../assets/images/tad.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.welcomeText}>Welcome to TADHealth</Text>
-            <Text style={styles.subtitleText}>
-              Sign in to continue to your dashboard
-            </Text>
-          </View>
-
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your email"
-                  placeholderTextColor={Colors.light.textGray[400]}
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
+    <ImageBackground
+      source={require("../../assets/images/login_image.jpg")}
+      style={styles.backgroundImage}
+    >
+      <View style={styles.overlay}>
+        <SafeAreaView style={styles.container}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.keyboardView}
+          >
+            <View style={styles.content}>
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require("../../assets/images/tad.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
                 />
+                <Text style={styles.welcomeText}>Welcome to TADHealth</Text>
+                <Text style={styles.subtitleText}>
+                  Sign in to continue to your dashboard
+                </Text>
+              </View>
+
+              <View style={styles.formContainer}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter your email"
+                      placeholderTextColor={Colors.light.textGray[400]}
+                      value={email}
+                      onChangeText={setEmail}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Password</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter your password"
+                      placeholderTextColor={Colors.light.textGray[400]}
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.button, isLoading && styles.buttonDisabled]}
+                  onPress={handleLogin}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.buttonText}>
+                    {isLoading ? "Signing In..." : "Sign In"}
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={styles.footer}>
+                  <Text style={styles.footerText}>
+                    Need help? Contact your administrator
+                  </Text>
+                </View>
               </View>
             </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your password"
-                  placeholderTextColor={Colors.light.textGray[400]}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              <Text style={styles.buttonText}>
-                {isLoading ? "Signing In..." : "Sign In"}
-              </Text>
-            </TouchableOpacity>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                Need help? Contact your administrator
-              </Text>
-            </View>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(53, 168, 187, 0.95)",
+    backgroundImage: Platform.select({
+      ios: "linear-gradient(180deg, rgba(53, 168, 187, 0.95) 0%, rgba(53, 168, 187, 0.85) 100%)",
+      android: undefined,
+    }),
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: "transparent",
   },
   keyboardView: {
     flex: 1,
@@ -133,23 +154,35 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     marginBottom: 24,
+    tintColor: "white",
   },
   welcomeText: {
     fontSize: 28,
     fontWeight: "700",
-    color: Colors.light.textGray[100],
+    color: "white",
     marginBottom: 8,
     textAlign: "center",
   },
   subtitleText: {
     fontSize: 16,
-    color: Colors.light.textGray[400],
+    color: "rgba(255, 255, 255, 0.9)",
     textAlign: "center",
   },
   formContainer: {
     width: "100%",
     maxWidth: 400,
     alignSelf: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    padding: 24,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   inputContainer: {
     marginBottom: 20,
@@ -161,7 +194,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputWrapper: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: "white",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.light.textGray[500],
@@ -185,7 +218,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
   },
@@ -194,7 +227,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
   },
   buttonText: {
-    color: Colors.light.background,
+    color: "white",
     fontSize: 18,
     fontWeight: "600",
   },
