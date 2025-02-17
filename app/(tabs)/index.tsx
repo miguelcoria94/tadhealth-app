@@ -1,11 +1,28 @@
-import { Image, StyleSheet, Platform, View } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Platform,
+  View,
+  TouchableOpacity,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext";
 
 export default function HomeScreen() {
+  const { signOut } = useAuth();
+  const handleLogout = async () => {
+    console.log("Logout pressed");
+    try {
+      await signOut();
+      console.log("Logout successful");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
   // Dummy data
   const counselorInfo = {
     name: "Dr. Sarah Wilson",
@@ -78,11 +95,23 @@ export default function HomeScreen() {
       }}
       headerImage={
         <View style={styles.headerContent}>
-          <Image
-            source={require("@/assets/images/tad.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.headerTop}>
+            <Image
+              source={require("@/assets/images/tad.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={styles.logoutButton}
+            >
+              <Feather
+                name="log-out"
+                size={24}
+                color={Colors.light.background}
+              />
+            </TouchableOpacity>
+          </View>
           <ThemedText type="title" style={styles.welcomeText}>
             Welcome back, Dr. Wilson
           </ThemedText>
@@ -190,11 +219,23 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "flex-start",
   },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 20,
+  },
   logo: {
     width: 150,
     height: 40,
     marginBottom: 20,
     tintColor: Colors.light.background,
+  },
+  logoutButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   welcomeText: {
     color: Colors.light.background,

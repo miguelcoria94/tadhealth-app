@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import { useAuth } from "../../context/AuthContext"
+import { useAuth } from "../../context/AuthContext";
 
 export default function AuthLayout() {
   const router = useRouter();
@@ -9,7 +9,7 @@ export default function AuthLayout() {
 
   useEffect(() => {
     if (!isLoading && userToken) {
-      router.replace("(tabs)");
+      router.replace("/(tabs)");
     }
   }, [userToken, isLoading]);
 
@@ -24,7 +24,9 @@ export default function AuthLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="login" />
-      {/* If you have more auth screens, list them here */}
+      {/* Add other auth screens here if needed */}
+      {/* <Stack.Screen name="register" /> */}
+      {/* <Stack.Screen name="forgot-password" /> */}
     </Stack>
   );
 }

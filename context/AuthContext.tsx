@@ -57,18 +57,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Called when user logs out
-  const signOut = async () => {
-    setIsLoading(true);
-    try {
-      await SecureStore.deleteItemAsync("userToken");
-      setUserToken(null);
-    } catch (error) {
-      console.log("Error deleting user token:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Called when user logs out\
+ const signOut = async () => {
+   setIsLoading(true);
+   try {
+     await SecureStore.deleteItemAsync("userToken"); // Clears the stored token
+     setUserToken(null);
+   } catch (error) {
+     console.log("Error deleting user token:", error);
+   } finally {
+     setIsLoading(false);
+   }
+ };
 
   // Provide these values to the rest of the app
   const value: AuthContextProps = {
