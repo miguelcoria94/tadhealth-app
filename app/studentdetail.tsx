@@ -18,6 +18,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
 import { students, appointments } from "@/assets/dummyData/appointments";
+import { extendedStudentInfo, referrals, forms } from "@/assets/dummyData/appointments";
 
 // Types
 interface Note {
@@ -100,10 +101,11 @@ function getProfileImage(student: { id: number; gender: string }) {
 }
 
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: 'user' },
-  { id: 'sessions', label: 'Sessions', icon: 'calendar' },
-  { id: 'attendance', label: 'Attendance', icon: 'check-square' },
-  { id: 'notes', label: 'Notes', icon: 'file-text' },
+  { id: 'details', label: 'Details', icon: 'user' },
+  { id: 'referrals', label: 'Referrals', icon: 'git-pull-request' },
+  { id: 'appointments', label: 'Appointments', icon: 'calendar' },
+  { id: 'progress-notes', label: 'Progress Notes', icon: 'file-text' },
+  { id: 'forms', label: 'Forms', icon: 'file' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -294,7 +296,7 @@ export default function StudentDetailScreen() {
     </View>
   );
 
-  const renderSessionsTab = () => (
+  const renderAppointmentsTab = () => (
     <View>
       {/* Upcoming Sessions */}
       <ThemedText type="subtitle" style={styles.sectionTitle}>Upcoming Sessions</ThemedText>
@@ -476,7 +478,7 @@ export default function StudentDetailScreen() {
     </View>
   );
   
-  const renderNotesTab = () => (
+  const renderProgressNotesTab = () => (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.notesContainer}
@@ -536,18 +538,158 @@ export default function StudentDetailScreen() {
     </KeyboardAvoidingView>
   );
 
+  const renderDetailsTab = () => (
+    <View>
+      <ThemedView variant="elevated" style={styles.infoCard}>
+        <ThemedText type="subtitle" style={styles.cardTitle}>Student Information</ThemedText>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>ID</ThemedText>
+          <ThemedText style={styles.value}>{student.id}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Phone</ThemedText>
+          <ThemedText style={styles.value}>{extendedStudentInfo[student.id].phone}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Email</ThemedText>
+          <ThemedText style={styles.value}>{extendedStudentInfo[student.id].email}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Date of Birth</ThemedText>
+          <ThemedText style={styles.value}>
+            {formatDate(extendedStudentInfo[student.id].dateOfBirth)} ({student.age})
+          </ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Grade</ThemedText>
+          <ThemedText style={styles.value}>{student.grade}</ThemedText>
+        </View>
+      </ThemedView>
+  
+      <View style={styles.buttonContainer}>
+        <Pressable style={styles.actionButton} onPress={() => {}}>
+          <Feather name="calendar" size={20} color={Colors.light.background} />
+          <ThemedText style={styles.actionButtonText}>Book Appointment</ThemedText>
+        </Pressable>
+        <Pressable style={styles.actionButton} onPress={() => {}}>
+          <Feather name="file-plus" size={20} color={Colors.light.background} />
+          <ThemedText style={styles.actionButtonText}>Create Referral</ThemedText>
+        </Pressable>
+      </View>
+  
+      <ThemedView variant="elevated" style={styles.infoCard}>
+        <ThemedText type="subtitle" style={styles.cardTitle}>Upcoming Appointments</ThemedText>
+        {studentAppointments
+          .filter(apt => apt.status === 'pending')
+          .map((apt) => (
+            <View key={apt.id} style={styles.appointmentItem}>
+              <View style={styles.appointmentHeader}>
+                <ThemedText style={styles.appointmentType}>{apt.type}</ThemedText>
+                <ThemedText style={styles.appointmentDate}>
+                  {formatDate(apt.time.date)} at {formatTime(apt.time.time)}
+                </ThemedText>
+              </View>
+              <ThemedText style={styles.appointmentCounselor}>
+                with {apt.counselor.name}
+              </ThemedText>
+            </View>
+          ))}
+      </ThemedView>
+    </View>
+  );
+  
+  const renderReferralsTab = () => (
+    <View>
+      <ThemedText type="subtitle" style={styles.sectionTitle}>Active Referrals</ThemedText>
+      {referrals
+        .filter(ref => ref.studentId === student.id && ref.status === 'Active')
+        .map(ref => (
+          <ThemedView key={ref.id} variant="elevated" style={styles.referralCard}>
+            <View style={styles.referralHeader}>
+              <ThemedText style={styles.referralType}>{ref.type}</ThemedText>
+              <View style={[styles.statusBadge, { backgroundColor: Colors.light.success }]}>
+                <ThemedText style={styles.statusText}>{ref.status}</ThemedText>
+              </View>
+            </View>
+            <View style={styles.referralDetails}>
+              <ThemedText style={styles.referralText}>
+                By: {ref.referrer.name} ({ref.referrer.role})
+              </ThemedText>
+              <ThemedText style={styles.referralDate}>Created: {formatDate(ref.createdDate)}</ThemedText>
+              <ThemedText style={styles.referralComment}>{ref.comment}</ThemedText>
+            </View>
+          </ThemedView>
+        ))}
+  
+      <ThemedText type="subtitle" style={[styles.sectionTitle, { marginTop: 24 }]}>
+        Past Referrals
+      </ThemedText>
+      {referrals
+        .filter(ref => ref.studentId === student.id && ref.status !== 'Active')
+        .map(ref => (
+          <ThemedView key={ref.id} variant="elevated" style={styles.referralCard}>
+            <View style={styles.referralHeader}>
+              <ThemedText style={styles.referralType}>{ref.type}</ThemedText>
+              <View style={[styles.statusBadge, { backgroundColor: Colors.light.textGray[300] }]}>
+                <ThemedText style={styles.statusText}>{ref.status}</ThemedText>
+              </View>
+            </View>
+            <View style={styles.referralDetails}>
+              <ThemedText style={styles.referralText}>
+                By: {ref.referrer.name} ({ref.referrer.role})
+              </ThemedText>
+              <ThemedText style={styles.referralDate}>Created: {formatDate(ref.createdDate)}</ThemedText>
+              <ThemedText style={styles.referralComment}>{ref.comment}</ThemedText>
+            </View>
+          </ThemedView>
+        ))}
+    </View>
+  );
+  
+  const renderFormsTab = () => (
+    <View>
+      {forms
+        .filter(form => form.studentId === student.id)
+        .map(form => (
+          <ThemedView key={form.id} variant="elevated" style={styles.formCard}>
+            <View style={styles.formHeader}>
+              <ThemedText style={styles.formName}>{form.name}</ThemedText>
+              <View style={[
+                styles.statusBadge,
+                { 
+                  backgroundColor: 
+                    form.status === 'Completed' ? Colors.light.success :
+                    form.status === 'Pending' ? Colors.light.warning :
+                    Colors.light.pink[100]
+                }
+              ]}>
+                <ThemedText style={styles.statusText}>{form.status}</ThemedText>
+              </View>
+            </View>
+            <View style={styles.formDetails}>
+              <ThemedText style={styles.formText}>Type: {form.type}</ThemedText>
+              <ThemedText style={styles.formText}>Shared by: {form.sharedBy}</ThemedText>
+              <ThemedText style={styles.formText}>Date: {formatDate(form.sharedDate)}</ThemedText>
+            </View>
+          </ThemedView>
+        ))}
+    </View>
+  );
+
   const renderActiveTabContent = () => {
     switch (activeTab) {
-      case 'overview':
-        return renderOverviewTab();
-      case 'sessions':
-        return renderSessionsTab();
-      case 'attendance':
-        return renderAttendanceTab();
-      case 'notes':
-        return renderNotesTab();
+      case 'details':
+        return renderDetailsTab();
+      case 'referrals':
+        return renderReferralsTab();
+      case 'appointments':
+        return renderAppointmentsTab();
+      case 'progress-notes':
+        return renderProgressNotesTab();
+      case 'forms':
+        return renderFormsTab();
       default:
-        return renderOverviewTab();
+        return renderDetailsTab();
     }
   };
 
@@ -595,7 +737,7 @@ export default function StudentDetailScreen() {
           >
             <Feather 
               name={tab.icon} 
-              size={20} 
+              size={18} 
               color={activeTab === tab.id ? 
                 Colors.light.green[200] : 
                 Colors.light.textGray[300]
@@ -606,12 +748,13 @@ export default function StudentDetailScreen() {
                 styles.tabText,
                 activeTab === tab.id && styles.activeTabText
               ]}
+              numberOfLines={1}
             >
               {tab.label}
             </ThemedText>
           </Pressable>
         ))}
-      </View>
+        </View>
 
       {/* Content */}
       <ScrollView 
@@ -666,23 +809,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.textGray[500] + "20",
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    paddingHorizontal: 4,
   },
   activeTab: {
     borderBottomWidth: 2,
     borderBottomColor: Colors.light.green[200],
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.light.textGray[300],
+    marginTop: 4,
+    textAlign: 'center',
   },
   activeTabText: {
     color: Colors.light.green[200],
@@ -1055,5 +1199,103 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontSize: 12,
     fontWeight: "600",
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.light.green[200],
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  actionButtonText: {
+    color: Colors.light.background,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  appointmentItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.textGray[500] + "20",
+  },
+  appointmentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  appointmentType: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+    fontWeight: "500",
+  },
+  appointmentDate: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  appointmentCounselor: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  referralCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  referralHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  referralType: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.light.textGray[100],
+  },
+  referralDetails: {
+    gap: 4,
+  },
+  referralText: {
+    fontSize: 14,
+    color: Colors.light.textGray[100],
+  },
+  referralDate: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  referralComment: {
+    fontSize: 14,
+    color: Colors.light.textGray[100],
+    marginTop: 8,
+  },
+  formCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  formHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  formName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.light.textGray[100],
+  },
+  formDetails: {
+    gap: 4,
+  },
+  formText: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
   },
 });

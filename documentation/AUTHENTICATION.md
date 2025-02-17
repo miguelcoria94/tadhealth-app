@@ -11,11 +11,19 @@ app/
   ├── (auth)/
   │   ├── _layout.tsx    # Auth layout with navigation logic
   │   └── login.tsx      # Login screen
+  ├── studentdetail.tsx    # Auth layout with navigation logic
   └── (tabs)/           # Protected routes
       ├── _layout.tsx    # Tab navigation layout
       ├── index.tsx      # Home screen
+      ├── appointments.tsx      # Home screen
+      ├── claims.tsx      # Home screen
+      ├── studentlookup.tsx      # Home screen
       └── [...other tab screens]
 ```
+assets/
+├── dummyData /  
+    ├── appointments.js   # dummy data
+
 
 ## Key Components
 

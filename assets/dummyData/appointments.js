@@ -1,3 +1,150 @@
+export const extendedStudentInfo = {
+  101: {
+    phone: "(555) 123-4567",
+    email: "john.doe@school.edu",
+    dateOfBirth: "2008-05-15",
+    emergencyContact: {
+      name: "Jane Doe",
+      relationship: "Mother",
+      phone: "(555) 123-4568"
+    }
+  },
+  102: {
+    phone: "(555) 234-5678",
+    email: "jane.smith@school.edu",
+    dateOfBirth: "2009-08-22",
+    emergencyContact: {
+      name: "Robert Smith",
+      relationship: "Father",
+      phone: "(555) 234-5679"
+    }
+  },
+  103: {
+    phone: "(555) 345-6789",
+    email: "samuel.green@school.edu",
+    dateOfBirth: "2007-11-30",
+    emergencyContact: {
+      name: "Mary Green",
+      relationship: "Mother",
+      phone: "(555) 345-6780"
+    }
+  },
+  104: {
+    phone: "(555) 456-7890",
+    email: "emily.white@school.edu",
+    dateOfBirth: "2008-09-03",
+    emergencyContact: {
+      name: "Thomas White",
+      relationship: "Father",
+      phone: "(555) 456-7891"
+    }
+  },
+  105: {
+    phone: "(555) 567-8901",
+    email: "lucas.brown@school.edu",
+    dateOfBirth: "2010-07-18",
+    emergencyContact: {
+      name: "Sarah Brown",
+      relationship: "Mother",
+      phone: "(555) 567-8902"
+    }
+  },
+  106: {
+    phone: "(555) 678-9012",
+    email: "chloe.wilson@school.edu",
+    dateOfBirth: "2006-12-05",
+    emergencyContact: {
+      name: "Jennifer Wilson",
+      relationship: "Mother",
+      phone: "(555) 678-9013"
+    }
+  },
+  107: {
+    phone: "(555) 789-0123",
+    email: "max.miller@school.edu",
+    dateOfBirth: "2007-03-25",
+    emergencyContact: {
+      name: "David Miller",
+      relationship: "Father",
+      phone: "(555) 789-0124"
+    }
+  },
+  108: {
+    phone: "(555) 890-1234",
+    email: "sophia.jackson@school.edu",
+    dateOfBirth: "2008-08-14",
+    emergencyContact: {
+      name: "Patricia Jackson",
+      relationship: "Mother",
+      phone: "(555) 890-1235"
+    }
+  },
+  109: {
+    phone: "(555) 901-2345",
+    email: "liam.harris@school.edu",
+    dateOfBirth: "2009-06-30",
+    emergencyContact: {
+      name: "Michael Harris",
+      relationship: "Father",
+      phone: "(555) 901-2346"
+    }
+  },
+  110: {
+    phone: "(555) 012-3456",
+    email: "isabella.martinez@school.edu",
+    dateOfBirth: "2008-10-12",
+    emergencyContact: {
+      name: "Maria Martinez",
+      relationship: "Mother",
+      phone: "(555) 012-3457"
+    }
+  }
+};
+
+
+export const referrals = [
+  {
+    id: 1,
+    studentId: 101,
+    referrer: {
+      name: "Sarah Johnson",
+      relationship: "School Counselor",
+      role: "Staff Member"
+    },
+    status: "Active",
+    type: "Academic Support",
+    createdDate: "2025-02-01",
+    comment: "Student showing signs of academic stress and difficulty managing workload.",
+    appointmentCreated: true,
+    appointmentId: 1
+  }
+];
+
+export const progressNotes = [
+  {
+    id: 1,
+    studentId: 101,
+    title: "Initial Assessment",
+    content: "Student expressed concerns about academic pressure. Setting up weekly check-ins.",
+    createdBy: "Dr. Smith",
+    createdDate: "2025-02-07",
+    type: "Assessment"
+  }
+];
+
+export const forms = [
+  {
+    id: 1,
+    studentId: 101,
+    name: "Consent for Counseling Services",
+    type: "Consent Form",
+    status: "Completed",
+    sharedBy: "Dr. Smith",
+    sharedDate: "2025-01-15",
+    lastUpdated: "2025-01-20"
+  }
+];
+
 export const appointments = [
   {
     id: 1,
