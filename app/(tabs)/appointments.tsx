@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, View, TextInput } from "react-native"; // Switching to TextInput from 'react-native'
-
+import { Image, ScrollView, StyleSheet, View, TextInput, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -23,13 +22,50 @@ export default function AppointmentsScreen() {
     }).length,
   };
 
-  // Filter buttons data
+  // Add this before the return statement
+
+  // Filter appointments based on search and filter
+  const filteredAppointments = appointments.filter((appointment) => {
+    const matchesSearch =
+      appointment.student.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      appointment.type.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (activeFilter === "all") return matchesSearch;
+    if (activeFilter === "today") {
+      const today = new Date().toISOString().split("T")[0];
+      return matchesSearch && appointment.time.date === today;
+    }
+    return matchesSearch && appointment.status === activeFilter;
+  });
+
+  // Enhanced filter buttons data with counts
   const filters = [
-    { id: "all", label: "All" },
-    { id: "pending", label: "Pending" },
-    { id: "completed", label: "Completed" },
-    { id: "today", label: "Today" },
+    { id: "all", label: "All", count: stats.total },
+    { id: "pending", label: "Pending", count: stats.pending },
+    { id: "completed", label: "Completed", count: stats.completed },
+    { id: "today", label: "Today", count: stats.today },
   ];
+
+  const renderHeader = () => (
+    <View style={styles.headerContent}>
+      <View style={styles.headerInner}>
+        <Image
+          source={require("@/assets/images/tad.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <TouchableOpacity style={styles.createButton}>
+          <Feather name="calendar" size={20} color={Colors.light.background} />
+          <ThemedText style={styles.createButtonText}>New</ThemedText>
+        </TouchableOpacity>
+      </View>
+      <ThemedText type="title" style={styles.headerTitle}>
+        Appointments
+      </ThemedText>
+    </View>
+  );
 
   const renderStatsCard = () => (
     <ThemedView variant="elevated" style={styles.statsCard}>
@@ -57,46 +93,46 @@ export default function AppointmentsScreen() {
     </ThemedView>
   );
 
-  const renderFilters = () => (
-    <View style={styles.filtersContainer}>
-      {filters.map((filter) => (
-        <ThemedView
-          key={filter.id}
-          style={[
-            styles.filterButton,
-            filter.id === activeFilter && styles.activeFilterButton,
-          ]}
-          onTouchEnd={() => setActiveFilter(filter.id)}
-        >
-          <ThemedText
-            style={[
-              styles.filterText,
-              filter.id === activeFilter && styles.activeFilterText,
-            ]}
-          >
-            {filter.label}
-          </ThemedText>
-        </ThemedView>
-      ))}
-    </View>
-  );
+ const renderFilters = () => (
+   <ScrollView
+     horizontal
+     showsHorizontalScrollIndicator={false}
+     style={styles.filtersScrollView}
+   >
+     <View style={styles.filtersContainer}>
+       {filters.map((filter) => (
+         <TouchableOpacity
+           key={filter.id}
+           style={[
+             styles.filterButton,
+             filter.id === activeFilter && styles.activeFilterButton,
+           ]}
+           onPress={() => setActiveFilter(filter.id)}
+         >
+           <ThemedText
+             style={[
+               styles.filterText,
+               filter.id === activeFilter && styles.activeFilterText,
+             ]}
+           >
+             {filter.label}
+           </ThemedText>
+           <ThemedText
+             style={[
+               styles.filterCount,
+               filter.id === activeFilter && styles.activeFilterCount,
+             ]}
+           >
+             {filter.count}
+           </ThemedText>
+         </TouchableOpacity>
+       ))}
+     </View>
+   </ScrollView>
+ );
 
-  // Filter appointments based on search and filter
-  const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch =
-      appointment.student.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      appointment.type.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (activeFilter === "all") return matchesSearch;
-    if (activeFilter === "today") {
-      const today = new Date().toISOString().split("T")[0];
-      return matchesSearch && appointment.time.date === today;
-    }
-    return matchesSearch && appointment.status === activeFilter;
-  });
-
+  // Existing functions remain unchanged
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
@@ -130,7 +166,7 @@ export default function AppointmentsScreen() {
     });
   };
 
-  // Boy and Girl Images
+  // Keep existing image arrays
   const boyImages = [
     require("@/assets/images/student-pp/boy1.jpg"),
     require("@/assets/images/student-pp/boy2.jpg"),
@@ -150,107 +186,138 @@ export default function AppointmentsScreen() {
   const getProfileImage = (student) => {
     switch (student.id) {
       case 101:
-        return boyImages[0];  // boy1
+        return boyImages[0];
       case 102:
-        return girlImages[0]; // girl1
+        return girlImages[0];
       case 103:
-        return boyImages[1];  // boy2
+        return boyImages[1];
       case 104:
-        return girlImages[1]; // girl2
+        return girlImages[1];
       case 105:
-        return boyImages[2];  // boy3
+        return boyImages[2];
       case 106:
-        return girlImages[2]; // girl3
+        return girlImages[2];
       case 107:
-        return boyImages[3];  // boy4
+        return boyImages[3];
       case 108:
-        return girlImages[3]; // girl4
+        return girlImages[3];
       case 109:
-        return boyImages[4];  // boy5
+        return boyImages[4];
       case 110:
-        return girlImages[4]; // girl5
+        return girlImages[4];
       default:
-        return null; // Return null if no match is found
+        return null;
     }
   };
-
 
   const renderAppointmentCard = (appointment) => {
     const profileImage = getProfileImage(appointment.student);
 
     return (
-      <ThemedView key={appointment.id} style={styles.card}>
+      <ThemedView key={appointment.id} variant="elevated" style={styles.card}>
         <View style={styles.cardContent}>
           <View style={styles.header}>
             <View style={styles.nameAndStatus}>
               <Image source={profileImage} style={styles.profileImage} />
-              <ThemedText
-                type="subtitle"
-                style={[styles.studentName, { color: Colors.light.textGray[100] }]}
-              >
-                {appointment.student.name}
-              </ThemedText>
+              <View style={styles.nameTypeContainer}>
+                <ThemedText type="subtitle" style={styles.studentName}>
+                  {appointment.student.name}
+                </ThemedText>
+                <ThemedText style={styles.appointmentType}>
+                  {appointment.type}
+                </ThemedText>
+              </View>
             </View>
+            <TouchableOpacity style={styles.moreButton}>
+              <Feather
+                name="more-vertical"
+                size={20}
+                color={Colors.light.textGray[300]}
+              />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.badgeContainer}>
-            <View
+          <View style={styles.statusRow}>
+            <ThemedText
               style={[
-                styles.statusBadge,
-                { backgroundColor: getStatusColor(appointment.status) },
+                styles.statusText,
+                { color: getStatusColor(appointment.status) },
               ]}
             >
-              <ThemedText style={styles.statusText}>
-                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-              </ThemedText>
-            </View>
-
-            <View
-              style={[
-                styles.priorityBadge,
-                { backgroundColor: getPriorityColor(appointment.priority) },
-              ]}
-            >
-              <ThemedText style={styles.priorityText}>
-                {appointment.priority.toUpperCase()} Priority
-              </ThemedText>
-            </View>
+              {appointment.status.charAt(0).toUpperCase() +
+                appointment.status.slice(1)}
+            </ThemedText>
+            <ThemedText style={styles.priorityText}>
+              {appointment.priority.toUpperCase()} Priority
+            </ThemedText>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.infoContainer}>
             <View style={styles.infoRow}>
-              <ThemedText style={styles.label}>Time</ThemedText>
+              <View style={styles.iconLabel}>
+                <Feather
+                  name="clock"
+                  size={16}
+                  color={Colors.light.textGray[300]}
+                />
+                <ThemedText style={[styles.label, { marginLeft: 8 }]}>
+                  Time
+                </ThemedText>
+              </View>
               <ThemedText style={styles.value}>
-                {`${formatDate(appointment.time.date)} at ${appointment.time.time}`}
+                {`${formatDate(appointment.time.date)} at ${
+                  appointment.time.time
+                }`}
               </ThemedText>
             </View>
 
             <View style={styles.infoRow}>
-              <ThemedText style={styles.label}>Location</ThemedText>
+              <View style={styles.iconLabel}>
+                <Feather
+                  name="map-pin"
+                  size={16}
+                  color={Colors.light.textGray[300]}
+                />
+                <ThemedText style={[styles.label, { marginLeft: 8 }]}>
+                  Location
+                </ThemedText>
+              </View>
               <ThemedText style={styles.value}>
                 {appointment.time.location}
               </ThemedText>
             </View>
 
             <View style={styles.infoRow}>
-              <ThemedText style={styles.label}>Counselor</ThemedText>
+              <View style={styles.iconLabel}>
+                <Feather
+                  name="user"
+                  size={16}
+                  color={Colors.light.textGray[300]}
+                />
+                <ThemedText style={[styles.label, { marginLeft: 8 }]}>
+                  Counselor
+                </ThemedText>
+              </View>
               <ThemedText style={styles.value}>
                 {appointment.counselor.name}
               </ThemedText>
             </View>
+          </View>
 
-            <View style={styles.infoRow}>
-              <ThemedText style={styles.label}>Type</ThemedText>
-              <ThemedText style={styles.value}>{appointment.type}</ThemedText>
-            </View>
+          <View style={styles.cardActions}>
+            <TouchableOpacity style={styles.acceptButton}>
+              <ThemedText style={styles.actionButtonText}>Accept</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.declineButton}>
+              <ThemedText style={styles.declineButtonText}>Decline</ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
       </ThemedView>
     );
   };
-
 
   return (
     <ParallaxScrollView
@@ -258,21 +325,9 @@ export default function AppointmentsScreen() {
         light: Colors.light.green[200],
         dark: "#1D3D47",
       }}
-      headerImage={
-        <View style={styles.headerContent}>
-          <Image
-            source={require("@/assets/images/tad.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <ThemedText type="title" style={styles.headerTitle}>
-            Appointments
-          </ThemedText>
-        </View>
-      }
+      headerImage={renderHeader()}
     >
       <View style={styles.container}>
-        {/* Search Bar */}
         <ThemedView variant="elevated" style={styles.searchContainer}>
           <Feather name="search" size={20} color={Colors.light.textGray[300]} />
           <TextInput
@@ -284,18 +339,18 @@ export default function AppointmentsScreen() {
           />
         </ThemedView>
 
-        {/* Stats Card */}
         {renderStatsCard()}
-
-        {/* Filters */}
         {renderFilters()}
 
-        {/* Appointments List */}
         <View style={styles.listContainer}>
           {filteredAppointments.length > 0 ? (
             filteredAppointments.map(renderAppointmentCard)
           ) : (
-            <ThemedText>No appointments found.</ThemedText>
+            <View style={styles.emptyStateContainer}>
+              <ThemedText style={styles.emptyStateText}>
+                No appointments found.
+              </ThemedText>
+            </View>
           )}
         </View>
       </View>
@@ -306,31 +361,57 @@ export default function AppointmentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: Colors.light.background,
   },
   headerContent: {
-    flex: 1,
+    height: 180,
     justifyContent: "flex-end",
     padding: 20,
-    alignItems: "flex-start",
+    paddingBottom: 30,
+  },
+  headerInner: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   logo: {
     width: 150,
     height: 40,
-    marginBottom: 20,
     tintColor: Colors.light.background,
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.light.green[100],
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 8,
+  },
+  createButtonText: {
+    color: Colors.light.background,
+    fontWeight: "600",
   },
   headerTitle: {
     color: Colors.light.background,
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: "600",
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
+    marginHorizontal: 10,
+    marginTop: 0,
     marginBottom: 16,
     borderRadius: 12,
+    backgroundColor: Colors.light.background,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
@@ -339,8 +420,10 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[100],
   },
   statsCard: {
+    marginHorizontal: 10,
     marginBottom: 16,
     padding: 16,
+    borderRadius: 12,
   },
   statsRow: {
     flexDirection: "row",
@@ -352,6 +435,8 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     color: Colors.light.green[100],
+    fontSize: 20,
+    fontWeight: "600",
     marginBottom: 4,
   },
   statDivider: {
@@ -360,108 +445,143 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.textGray[500],
     opacity: 0.2,
   },
-  filtersContainer: {
-    flexDirection: "row",
-    gap: 8,
+  filtersScrollView: {
     marginBottom: 16,
   },
+  filtersContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    gap: 12,
+  },
   filterButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: Colors.light.textGray[500] + "10",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "transparent",
   },
   activeFilterButton: {
-    backgroundColor: Colors.light.green[200],
+    backgroundColor: Colors.light.background,
+    borderColor: Colors.light.green[200],
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.light.textGray[300],
+    fontWeight: "500",
   },
   activeFilterText: {
-    color: Colors.light.background,
+    color: Colors.light.green[200],
     fontWeight: "600",
   },
+  filterCount: {
+    fontSize: 13,
+    color: Colors.light.textGray[300],
+  },
+  emptyStateContainer: {
+    // Stretches to fill remaining space, so we can center content
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 16, // or 10, depending on your preference
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: Colors.light.textGray[300],
+    textAlign: "center", // optional
+    height: 400, // optional
+    paddingTop: -200, // optional
+    
+  },
+
+  activeFilterCount: {
+    color: Colors.light.green[200],
+  },
   listContainer: {
-    gap: 16,
+    gap: 0,
   },
   card: {
-    borderRadius: 16,
+    marginHorizontal: 10,
+    marginBottom: 16,
+    borderRadius: 12,
     backgroundColor: Colors.light.background,
-    shadowColor: Colors.light.textGray[100],
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   cardContent: {
     padding: 16,
   },
   header: {
-    flexDirection: "row",  // This ensures the student info and badges are aligned horizontally
+    flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",  // Align items vertically in the center
+    alignItems: "flex-start",
+    marginBottom: 12,
   },
   nameAndStatus: {
-    flexDirection: "row",  // This keeps the profile image and name side by side
-    alignItems: "center",  // Vertically center the profile image and name
-    flex: 1,  // Make sure this section takes up the available space
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  nameTypeContainer: {
+    flex: 1,
   },
   profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 5,
+    width: 48,
+    height: 48,
+    borderRadius: 8,
     marginRight: 12,
   },
   studentName: {
     fontSize: 16,
+    fontWeight: "600",
     color: Colors.light.textGray[100],
+    marginBottom: 4,
   },
-  badgeContainer: {
-    flexDirection: "column",  // Stack the badges vertically
-    justifyContent: "flex-start",
-    gap: 8,  // Space between the badges
-    alignItems: "flex-end",  // Align the badges to the right side of the container
+  appointmentType: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
   },
-  statusBadge: {
-    width: 110,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    justifyContent: "center",
+  moreButton: {
+    padding: 4,
+  },
+  statusRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 12,
   },
   statusText: {
-    color: Colors.light.textGray[900],
+    fontSize: 14,
     fontWeight: "600",
-  },
-  priorityBadge: {
-    width: 150,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    color: Colors.light.green[200],
   },
   priorityText: {
-    fontWeight: "500",
-    color: Colors.light.textGray[100],
+    fontSize: 13,
+    color: Colors.light.textGray[300],
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.light.textGray[300] + "40",
+    backgroundColor: Colors.light.textGray[300] + "20",
     marginVertical: 12,
   },
   infoContainer: {
-    marginVertical: 12,
+    gap: 12,
   },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 8,
+    alignItems: "center",
+  },
+  iconLabel: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   label: {
     fontSize: 14,
@@ -472,5 +592,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: Colors.light.textGray[100],
+  },
+  cardActions: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 16,
+  },
+  acceptButton: {
+    flex: 1,
+    backgroundColor: Colors.light.green[200],
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  declineButton: {
+    flex: 1,
+    backgroundColor: Colors.light.textGray[500] + "10",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  actionButtonText: {
+    color: Colors.light.background,
+    fontWeight: "600",
+  },
+  declineButtonText: {
+    color: Colors.light.textGray[300],
+    fontWeight: "600",
+  },
+  noAppointments: {
+    textAlign: "center",
+    marginTop: 20,
+    color: Colors.light.textGray[300],
   },
 });
