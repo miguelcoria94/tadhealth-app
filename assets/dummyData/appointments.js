@@ -117,7 +117,155 @@ export const referrals = [
     comment: "Student showing signs of academic stress and difficulty managing workload.",
     appointmentCreated: true,
     appointmentId: 1
-  }
+  },
+  {
+    id: 2,
+    studentId: 101,
+    referrer: {
+      name: "Sarah Johnson",
+      relationship: "School Counselor",
+      role: "Staff Member"
+    },
+    status: "Active",
+    type: "Academic Support",
+    createdDate: "2025-02-01",
+    comment: "Student showing signs of academic stress and difficulty managing workload.",
+    appointmentCreated: true,
+    appointmentId: 1
+    },
+    {
+      id: 3,
+      studentId: 101,
+      referrer: {
+        name: "Jane Doe",
+        relationship: "Mother",
+        role: "Parent/Guardian"
+      },
+      status: "Completed",
+      type: "Mental Health Support",
+      createdDate: "2024-11-15",
+      comment: "Concerned about anxiety affecting school performance.",
+      appointmentCreated: true,
+      appointmentId: 2
+    },
+    {
+      id: 4,
+      studentId: 102,
+      referrer: {
+        name: "Ms. Roberts",
+        relationship: "Math Teacher",
+        role: "Staff Member"
+      },
+      status: "Active",
+      type: "Academic Support",
+      createdDate: "2025-01-20",
+      comment: "Student struggling with advanced algebra concepts. Requesting tutoring support.",
+      appointmentCreated: false
+    },
+    {
+      id: 5,
+      studentId: 103,
+      referrer: {
+        name: "Michael Green",
+        relationship: "Father",
+        role: "Parent/Guardian"
+      },
+      status: "Active",
+      type: "College Counseling",
+      createdDate: "2025-02-05",
+      comment: "Requesting guidance for college applications and scholarship opportunities.",
+      appointmentCreated: true,
+      appointmentId: 5
+    },
+    {
+      id: 6,
+      studentId: 103,
+      referrer: {
+        name: "Dr. Thompson",
+        relationship: "School Psychologist",
+        role: "Staff Member"
+      },
+      status: "Completed",
+      type: "Mental Health Support",
+      createdDate: "2024-10-10",
+      comment: "Student reported feelings of depression. Initial assessment recommended.",
+      appointmentCreated: true,
+      appointmentId: 6
+    },
+    {
+      id: 7,
+      studentId: 104,
+      referrer: {
+        name: "Coach Williams",
+        relationship: "PE Teacher",
+        role: "Staff Member"
+      },
+      status: "Active",
+      type: "Social Support",
+      createdDate: "2025-01-30",
+      comment: "Student showing signs of social isolation during team activities.",
+      appointmentCreated: true,
+      appointmentId: 7
+    },
+    {
+      id: 8,
+      studentId: 105,
+      referrer: {
+        name: "Sarah Brown",
+        relationship: "Mother",
+        role: "Parent/Guardian"
+      },
+      status: "Active",
+      type: "Behavioral Support",
+      createdDate: "2025-02-01",
+      comment: "Concerned about recent aggressive behavior and anger management.",
+      appointmentCreated: true,
+      appointmentId: 8
+    },
+    {
+      id: 9,
+      studentId: 106,
+      referrer: {
+        name: "Ms. Lee",
+        relationship: "Career Counselor",
+        role: "Staff Member"
+      },
+      status: "Completed",
+      type: "Career Guidance",
+      createdDate: "2024-11-05",
+      comment: "Student requesting information about engineering programs and internships.",
+      appointmentCreated: true,
+      appointmentId: 9
+    },
+    {
+      id: 10,
+      studentId: 108,
+      referrer: {
+        name: "Mrs. Clark",
+        relationship: "English Teacher",
+        role: "Staff Member"
+      },
+      status: "Active",
+      type: "Academic Support",
+      createdDate: "2025-02-10",
+      comment: "Student showing decline in essay writing performance and class participation.",
+      appointmentCreated: false
+    },
+    {
+      id: 11,
+      studentId: 109,
+      referrer: {
+        name: "Michael Harris",
+        relationship: "Father",
+        role: "Parent/Guardian"
+      },
+      status: "Completed",
+      type: "Career Guidance",
+      createdDate: "2024-10-15",
+      comment: "Seeking guidance on course selection for technology career path.",
+      appointmentCreated: true,
+      appointmentId: 10
+    }
 ];
 
 export const progressNotes = [
@@ -146,6 +294,7 @@ export const forms = [
 ];
 
 export const appointments = [
+  // Student 101 - John Doe
   {
     id: 1,
     student: {
@@ -165,46 +314,81 @@ export const appointments = [
       specialization: "Mental Health",
     },
     time: {
-      date: "2025-02-07",
+      date: "2025-03-15",
       time: "14:30",
+      location: "Room 305, School Building A",
+    },
+    type: "Mental Health",
+    status: "pending",
+    priority: "medium",
+    notes: [],
+  },
+  {
+    id: 2,
+    student: {
+      id: 101,
+      name: "John Doe",
+      age: 16,
+      grade: 10,
+      mentalState: "yellow",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 202,
+      name: "Ms. Johnson",
+      specialization: "Career Counseling",
+    },
+    time: {
+      date: "2025-03-22",
+      time: "10:00",
+      location: "Room 402, School Building B",
+    },
+    type: "Career Counseling",
+    status: "pending",
+    priority: "low",
+    notes: [],
+  },
+  {
+    id: 3,
+    student: {
+      id: 101,
+      name: "John Doe",
+      age: 16,
+      grade: 10,
+      mentalState: "yellow",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 201,
+      name: "Dr. Smith",
+      specialization: "Mental Health",
+    },
+    time: {
+      date: "2024-12-15",
+      time: "13:30",
       location: "Room 305, School Building A",
     },
     type: "Mental Health",
     status: "completed",
     priority: "medium",
-    totalAppointments: 5,
-    pastAppointments: [
-      {
-        date: "2024-12-05",
-        type: "Mental Health",
-        notes: "Follow up on emotional well-being.",
-      },
-      {
-        date: "2024-10-20",
-        type: "Career Counseling",
-        notes: "Explored future career options.",
-      },
-    ],
     notes: [
       {
-        title: "Mood Assessment",
-        body: "Student reported feeling anxious, but manageable.",
-        date: "2025-02-07",
-      },
-      {
-        title: "Progress Review",
-        body: "Discussed improvement in school performance.",
+        title: "Anxiety Check-in",
+        body: "Student reports improved anxiety management using breathing techniques.",
+        date: "2024-12-15",
       },
     ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 4,
-      meetingHelpfulness: 4,
-      needAnotherMeeting: 2,
-    },
   },
+
+  // Student 102 - Jane Smith
   {
-    id: 2,
+    id: 4,
     student: {
       id: 102,
       name: "Jane Smith",
@@ -222,36 +406,81 @@ export const appointments = [
       specialization: "Career Counseling",
     },
     time: {
-      date: "2025-02-08",
+      date: "2025-03-18",
       time: "09:00",
       location: "Room 402, School Building B",
     },
     type: "Career Counseling",
     status: "pending",
-    priority: "high",
-    totalAppointments: 2,
-    pastAppointments: [
-      {
-        date: "2024-11-30",
-        type: "Career Counseling",
-        notes: "Initial career discussion, interested in law.",
-      },
-    ],
-    notes: [
-      {
-        title: "Initial Career Discussion",
-        body: "Student is interested in pursuing a law career.",
-      },
-    ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 5,
-      meetingHelpfulness: 5,
-      needAnotherMeeting: 4,
-    },
+    priority: "medium",
+    notes: [],
   },
   {
-    id: 3,
+    id: 5,
+    student: {
+      id: 102,
+      name: "Jane Smith",
+      age: 15,
+      grade: 9,
+      mentalState: "green",
+      consent: {
+        studentConsent: true,
+        parentConsent: false,
+      },
+    },
+    counselor: {
+      id: 204,
+      name: "Mrs. Davis",
+      specialization: "Academic Counseling",
+    },
+    time: {
+      date: "2025-04-05",
+      time: "11:30",
+      location: "Room 204, School Building D",
+    },
+    type: "Academic Counseling",
+    status: "pending",
+    priority: "low",
+    notes: [],
+  },
+  {
+    id: 6,
+    student: {
+      id: 102,
+      name: "Jane Smith",
+      age: 15,
+      grade: 9,
+      mentalState: "green",
+      consent: {
+        studentConsent: true,
+        parentConsent: false,
+      },
+    },
+    counselor: {
+      id: 202,
+      name: "Ms. Johnson",
+      specialization: "Career Counseling",
+    },
+    time: {
+      date: "2024-11-30",
+      time: "09:30",
+      location: "Room 402, School Building B",
+    },
+    type: "Career Counseling",
+    status: "completed",
+    priority: "medium",
+    notes: [
+      {
+        title: "Career Exploration",
+        body: "Initial discussion about law career path and required preparations.",
+        date: "2024-11-30",
+      },
+    ],
+  },
+
+  // Student 103 - Samuel Green
+  {
+    id: 7,
     student: {
       id: 103,
       name: "Samuel Green",
@@ -269,42 +498,81 @@ export const appointments = [
       specialization: "Mental Health",
     },
     time: {
-      date: "2025-02-09",
-      time: "10:30",
+      date: "2025-03-20",
+      time: "14:00",
+      location: "Room 101, School Building C",
+    },
+    type: "Mental Health",
+    status: "pending",
+    priority: "high",
+    notes: [],
+  },
+  {
+    id: 8,
+    student: {
+      id: 103,
+      name: "Samuel Green",
+      age: 17,
+      grade: 12,
+      mentalState: "orange",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 202,
+      name: "Ms. Johnson",
+      specialization: "Career Counseling",
+    },
+    time: {
+      date: "2025-03-25",
+      time: "11:00",
+      location: "Room 402, School Building B",
+    },
+    type: "Career Counseling",
+    status: "pending",
+    priority: "medium",
+    notes: [],
+  },
+  {
+    id: 9,
+    student: {
+      id: 103,
+      name: "Samuel Green",
+      age: 17,
+      grade: 12,
+      mentalState: "orange",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 203,
+      name: "Mr. Thompson",
+      specialization: "Mental Health",
+    },
+    time: {
+      date: "2024-10-10",
+      time: "13:00",
       location: "Room 101, School Building C",
     },
     type: "Mental Health",
     status: "completed",
     priority: "high",
-    totalAppointments: 8,
-    pastAppointments: [
-      {
-        date: "2024-10-10",
-        type: "Mental Health",
-        notes: "Dealing with depression.",
-      },
-      {
-        date: "2024-09-05",
-        type: "Career Counseling",
-        notes: "Explored potential college options.",
-      },
-    ],
     notes: [
       {
-        title: "Anxiety Assessment",
-        body: "Student is facing ongoing anxiety due to recent life changes.",
-        date: "2025-02-09",
+        title: "Depression Assessment",
+        body: "Initial assessment of depressive symptoms and coping strategies.",
+        date: "2024-10-10",
       },
     ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 3,
-      meetingHelpfulness: 3,
-      needAnotherMeeting: 5,
-    },
   },
+
+  // Student 104 - Emily White
   {
-    id: 4,
+    id: 10,
     student: {
       id: 104,
       name: "Emily White",
@@ -322,37 +590,82 @@ export const appointments = [
       specialization: "Academic Counseling",
     },
     time: {
-      date: "2025-02-10",
-      time: "12:00",
+      date: "2025-03-19",
+      time: "10:30",
       location: "Room 204, School Building D",
     },
     type: "Academic Counseling",
     status: "pending",
     priority: "medium",
-    totalAppointments: 3,
-    pastAppointments: [
-      {
-        date: "2024-11-15",
-        type: "Academic Counseling",
-        notes: "Worked on time management.",
-      },
-    ],
-    notes: [
-      {
-        title: "Time Management Tips",
-        body: "Discussed strategies for improving study habits and staying organized.",
-        date: "2025-02-10",
-      },
-    ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 4,
-      meetingHelpfulness: 5,
-      needAnotherMeeting: 3,
-    },
+    notes: [],
   },
   {
-    id: 5,
+    id: 11,
+    student: {
+      id: 104,
+      name: "Emily White",
+      age: 16,
+      grade: 11,
+      mentalState: "green",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 204,
+      name: "Mrs. Davis",
+      specialization: "Academic Counseling",
+    },
+    time: {
+      date: "2025-04-02",
+      time: "13:30",
+      location: "Room 204, School Building D",
+    },
+    type: "Academic Counseling",
+    status: "pending",
+    priority: "low",
+    notes: [],
+  },
+  {
+    id: 12,
+    student: {
+      id: 104,
+      name: "Emily White",
+      age: 16,
+      grade: 11,
+      mentalState: "green",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 204,
+      name: "Mrs. Davis",
+      specialization: "Academic Counseling",
+    },
+    time: {
+      date: "2024-11-15",
+      time: "11:00",
+      location: "Room 204, School Building D",
+    },
+    type: "Academic Counseling",
+    status: "completed",
+    priority: "medium",
+    notes: [
+      {
+        title: "Study Skills",
+        body: "Reviewed time management strategies and study techniques.",
+        date: "2024-11-15",
+      },
+    ],
+  },
+
+  // Continue with similar patterns for students 105-110...
+  // Student 105 - Lucas Brown
+  {
+    id: 13,
     student: {
       id: 105,
       name: "Lucas Brown",
@@ -370,42 +683,53 @@ export const appointments = [
       specialization: "Mental Health",
     },
     time: {
-      date: "2025-02-11",
-      time: "08:00",
+      date: "2025-03-21",
+      time: "09:00",
+      location: "Room 103, School Building A",
+    },
+    type: "Mental Health",
+    status: "pending",
+    priority: "high",
+    notes: [],
+  },
+  {
+    id: 14,
+    student: {
+      id: 105,
+      name: "Lucas Brown",
+      age: 14,
+      grade: 8,
+      mentalState: "red",
+      consent: {
+        studentConsent: true,
+        parentConsent: false,
+      },
+    },
+    counselor: {
+      id: 205,
+      name: "Mr. Peterson",
+      specialization: "Mental Health",
+    },
+    time: {
+      date: "2024-12-01",
+      time: "10:00",
       location: "Room 103, School Building A",
     },
     type: "Mental Health",
     status: "completed",
     priority: "high",
-    totalAppointments: 4,
-    pastAppointments: [
-      {
-        date: "2024-12-01",
-        type: "Mental Health",
-        notes: "Dealing with anger issues.",
-      },
-      {
-        date: "2024-10-18",
-        type: "Mental Health",
-        notes: "Initial emotional support.",
-      },
-    ],
     notes: [
       {
         title: "Anger Management",
-        body: "Discussed techniques to manage emotions.",
-        date: "2025-02-11",
+        body: "Discussed triggers and developed coping strategies.",
+        date: "2024-12-01",
       },
     ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 4,
-      meetingHelpfulness: 5,
-      needAnotherMeeting: 5,
-    },
   },
+
+  // Student 106 - Chloe Wilson
   {
-    id: 6,
+    id: 15,
     student: {
       id: 106,
       name: "Chloe Wilson",
@@ -423,37 +747,53 @@ export const appointments = [
       specialization: "Career Counseling",
     },
     time: {
-      date: "2025-02-12",
+      date: "2025-03-28",
       time: "13:30",
+      location: "Room 307, School Building E",
+    },
+    type: "Career Counseling",
+    status: "pending",
+    priority: "medium",
+    notes: [],
+  },
+  {
+    id: 16,
+    student: {
+      id: 106,
+      name: "Chloe Wilson",
+      age: 18,
+      grade: 12,
+      mentalState: "yellow",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 206,
+      name: "Ms. Lee",
+      specialization: "Career Counseling",
+    },
+    time: {
+      date: "2024-11-05",
+      time: "14:30",
       location: "Room 307, School Building E",
     },
     type: "Career Counseling",
     status: "completed",
     priority: "medium",
-    totalAppointments: 6,
-    pastAppointments: [
-      {
-        date: "2024-11-05",
-        type: "Career Counseling",
-        notes: "Explored career opportunities in engineering.",
-      },
-    ],
     notes: [
       {
-        title: "Engineering Career Discussion",
-        body: "Discussed possible paths in mechanical and civil engineering.",
-        date: "2025-02-12",
+        title: "Engineering Pathways",
+        body: "Explored different engineering disciplines and university programs.",
+        date: "2024-11-05",
       },
     ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 5,
-      meetingHelpfulness: 5,
-      needAnotherMeeting: 2,
-    },
   },
+
+  // Student 107 - Max Miller
   {
-    id: 7,
+    id: 17,
     student: {
       id: 107,
       name: "Max Miller",
@@ -471,25 +811,19 @@ export const appointments = [
       specialization: "Academic Counseling",
     },
     time: {
-      date: "2025-02-13",
+      date: "2025-03-26",
       time: "15:00",
       location: "Room 305, School Building F",
     },
     type: "Academic Counseling",
     status: "pending",
     priority: "low",
-    totalAppointments: 2,
-    pastAppointments: [],
     notes: [],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 3,
-      meetingHelpfulness: 3,
-      needAnotherMeeting: 3,
-    },
   },
+
+  // Student 108 - Sophia Jackson
   {
-    id: 8,
+    id: 18,
     student: {
       id: 108,
       name: "Sophia Jackson",
@@ -507,37 +841,53 @@ export const appointments = [
       specialization: "Mental Health",
     },
     time: {
-      date: "2025-02-14",
+      date: "2025-03-22",
       time: "11:30",
+      location: "Room 209, School Building A",
+    },
+    type: "Mental Health",
+    status: "pending",
+    priority: "high",
+    notes: [],
+  },
+  {
+    id: 19,
+    student: {
+      id: 108,
+      name: "Sophia Jackson",
+      age: 16,
+      grade: 10,
+      mentalState: "orange",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 208,
+      name: "Mrs. Clark",
+      specialization: "Mental Health",
+    },
+    time: {  
+    date: "2024-12-20",
+      time: "10:30",
       location: "Room 209, School Building A",
     },
     type: "Mental Health",
     status: "completed",
     priority: "high",
-    totalAppointments: 7,
-    pastAppointments: [
-      {
-        date: "2024-12-20",
-        type: "Mental Health",
-        notes: "Dealing with depression and low self-esteem.",
-      },
-    ],
     notes: [
       {
-        title: "Depression Check-in",
-        body: "Reviewed emotional well-being and self-esteem challenges.",
-        date: "2025-02-14",
+        title: "Depression Follow-up",
+        body: "Reviewed progress with medication and therapy techniques.",
+        date: "2024-12-20",
       },
     ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 4,
-      meetingHelpfulness: 4,
-      needAnotherMeeting: 5,
-    },
   },
+
+  // Student 109 - Liam Harris
   {
-    id: 9,
+    id: 20,
     student: {
       id: 109,
       name: "Liam Harris",
@@ -555,37 +905,53 @@ export const appointments = [
       specialization: "Career Counseling",
     },
     time: {
-      date: "2025-02-15",
+      date: "2025-03-25",
       time: "09:45",
+      location: "Room 405, School Building B",
+    },
+    type: "Career Counseling",
+    status: "pending",
+    priority: "medium",
+    notes: [],
+  },
+  {
+    id: 21,
+    student: {
+      id: 109,
+      name: "Liam Harris",
+      age: 15,
+      grade: 9,
+      mentalState: "yellow",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 209,
+      name: "Ms. Ramirez",
+      specialization: "Career Counseling",
+    },
+    time: {
+      date: "2024-10-15",
+      time: "10:45",
       location: "Room 405, School Building B",
     },
     type: "Career Counseling",
     status: "completed",
     priority: "medium",
-    totalAppointments: 5,
-    pastAppointments: [
-      {
-        date: "2024-10-15",
-        type: "Career Counseling",
-        notes: "Reviewed future career options.",
-      },
-    ],
     notes: [
       {
-        title: "Career Options Discussion",
-        body: "Discussed possible careers in tech and business fields.",
-        date: "2025-02-15",
+        title: "Career Interest Assessment",
+        body: "Completed interest inventory and discussed potential career paths in technology.",
+        date: "2024-10-15",
       },
     ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 4,
-      meetingHelpfulness: 4,
-      needAnotherMeeting: 3,
-    },
   },
+
+  // Student 110 - Isabella Martinez
   {
-    id: 10,
+    id: 22,
     student: {
       id: 110,
       name: "Isabella Martinez",
@@ -603,36 +969,79 @@ export const appointments = [
       specialization: "Academic Counseling",
     },
     time: {
-      date: "2025-02-16",
+      date: "2025-03-30",
       time: "16:00",
       location: "Room 502, School Building C",
     },
     type: "Academic Counseling",
     status: "pending",
     priority: "low",
-    totalAppointments: 4,
-    pastAppointments: [
-      {
-        date: "2024-11-12",
-        type: "Academic Counseling",
-        notes: "Focus on improving test-taking strategies.",
+    notes: [],
+  },
+  {
+    id: 23,
+    student: {
+      id: 110,
+      name: "Isabella Martinez",
+      age: 16,
+      grade: 10,
+      mentalState: "green",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
       },
-    ],
+    },
+    counselor: {
+      id: 210,
+      name: "Mr. Harper",
+      specialization: "Academic Counseling",
+    },
+    time: {
+      date: "2025-04-15",
+      time: "15:00",
+      location: "Room 502, School Building C",
+    },
+    type: "Academic Counseling",
+    status: "pending",
+    priority: "low",
+    notes: [],
+  },
+  {
+    id: 24,
+    student: {
+      id: 110,
+      name: "Isabella Martinez",
+      age: 16,
+      grade: 10,
+      mentalState: "green",
+      consent: {
+        studentConsent: true,
+        parentConsent: true,
+      },
+    },
+    counselor: {
+      id: 210,
+      name: "Mr. Harper",
+      specialization: "Academic Counseling",
+    },
+    time: {
+      date: "2024-11-12",
+      time: "14:00",
+      location: "Room 502, School Building C",
+    },
+    type: "Academic Counseling",
+    status: "completed",
+    priority: "medium",
     notes: [
       {
-        title: "Test-Taking Tips",
-        body: "Discussed strategies to manage test anxiety and improve focus.",
-        date: "2025-02-16",
+        title: "Test Preparation",
+        body: "Reviewed test-taking strategies and created study schedule.",
+        date: "2024-11-12",
       },
     ],
-    documents: [{ title: "Consent Form", url: "path/to/consent_form.pdf" }],
-    questionnaire: {
-      meetingRating: 5,
-      meetingHelpfulness: 5,
-      needAnotherMeeting: 2,
-    },
   },
 ];
+
 
 export const students = [
   {
@@ -756,7 +1165,6 @@ export const students = [
     gender: "female",  // added gender
   },
 ];
-
 
 // Sample app tabs (appointments and students)
 const appTabs = {

@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: Colors.light.green[200],
-    paddingTop: 20,
+    paddingTop: Platform.OS === 'ios' ? 20 : 8, 
     paddingBottom: 24,
     paddingHorizontal: 16,
   },
