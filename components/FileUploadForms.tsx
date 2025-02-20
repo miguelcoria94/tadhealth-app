@@ -1,45 +1,51 @@
 // components/FileUploadForms.tsx
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Alert, Modal, ActivityIndicator } from 'react-native';
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import { WebView } from 'react-native-webview';
 
-// Mock function to simulate file upload
-const uploadFile = async (file: DocumentPicker.DocumentResult) => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return {
-    id: Math.random().toString(36).substr(2, 9),
-    name: file.assets?.[0].name || 'Unknown file',
-    type: file.assets?.[0].mimeType || 'application/octet-stream',
-    uploadedAt: new Date().toISOString()
-  };
-};
-
-interface FileInfo {
-  id: string;
+interface FormInfo {
+  id: number;
   name: string;
   type: string;
-  uploadedAt: string;
+  status: 'Completed' | 'Pending' | 'Rejected';
+  sharedBy: string;
+  sharedDate: string;
+  studentId: number;
+  filePath?: string;
 }
 
-export default function FileUploadForms() {
-  const [files, setFiles] = useState<FileInfo[]>([]);
+interface Props {
+  studentId: number;
+  existingForms: FormInfo[];
+}
+
+export default function FileUploadForms({ studentId, existingForms }: Props) {
+  const [selectedForm, setSelectedForm] = useState<FormInfo | null>(null);
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  const handleFormPress = (form: FormInfo) => {
+    if (form.filePath) {
+      setSelectedForm(form);
+      setIsViewerVisible(true);
+    }
+  };
+
+  const handleCloseViewer = () => {
+    setIsViewerVisible(false);
+    setSelectedForm(null);
+  };
 
   const handleFilePick = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: [
-          'application/pdf',
-          'image/jpeg',
-          'image/png',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ],
+        type: ['application/pdf'],
         copyToCacheDirectory: true
       });
 
@@ -47,19 +53,18 @@ export default function FileUploadForms() {
         return;
       }
 
-      // Check file size (max 10MB)
-      const fileSize = result.assets[0].size || 0;
-      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-      
-      if (fileSize > maxSize) {
-        Alert.alert('File too large', 'Please upload files smaller than 10MB.');
-        return;
-      }
-
       setIsUploading(true);
       try {
-        const uploadedFile = await uploadFile(result);
-        setFiles(prev => [...prev, uploadedFile]);
+        // Copy file to app's documents directory
+        const fileName = result.assets[0].name;
+        const newPath = FileSystem.documentDirectory + fileName;
+        
+        await FileSystem.copyAsync({
+          from: result.assets[0].uri,
+          to: newPath
+        });
+
+        Alert.alert('Success', 'File uploaded successfully!');
       } catch (error) {
         Alert.alert('Upload failed', 'Failed to upload file. Please try again.');
       } finally {
@@ -70,55 +75,188 @@ export default function FileUploadForms() {
     }
   };
 
-  const handleDeleteFile = (fileId: string) => {
-    setFiles(prev => prev.filter(file => file.id !== fileId));
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
 
   return (
     <View style={styles.container}>
-      {/* Upload Button */}
+      {/* Existing Forms */}
+      {existingForms
+        .filter(form => form.studentId === studentId)
+        .map(form => (
+          <TouchableOpacity
+            key={form.id}
+            onPress={() => handleFormPress(form)}
+            activeOpacity={form.filePath ? 0.7 : 1}
+          >
+            <ThemedView variant="elevated" style={styles.formCard}>
+              <View style={styles.formHeader}>
+                <View style={styles.formTitleContainer}>
+                  <ThemedText style={styles.formName}>{form.name}</ThemedText>
+                  {form.filePath && (
+                    <Feather 
+                      name="file-text" 
+                      size={16} 
+                      color={Colors.light.textGray[300]} 
+                      style={styles.formIcon}
+                    />
+                  )}
+                </View>
+                <View style={[
+                  styles.statusBadge,
+                  { 
+                    backgroundColor: 
+                      form.status === 'Completed' ? Colors.light.success :
+                      form.status === 'Pending' ? Colors.light.warning :
+                      Colors.light.pink[100]
+                  }
+                ]}>
+                  <ThemedText style={styles.statusText}>{form.status}</ThemedText>
+                </View>
+              </View>
+              <View style={styles.formDetails}>
+                <ThemedText style={styles.formText}>Type: {form.type}</ThemedText>
+                <ThemedText style={styles.formText}>Shared by: {form.sharedBy}</ThemedText>
+                <ThemedText style={styles.formText}>Date: {formatDate(form.sharedDate)}</ThemedText>
+              </View>
+            </ThemedView>
+          </TouchableOpacity>
+        ))}
+
+      {/* Form Viewer Modal */}
+      <Modal
+        visible={isViewerVisible}
+        onRequestClose={handleCloseViewer}
+        animationType="slide"
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity 
+              onPress={handleCloseViewer}
+              style={styles.closeButton}
+            >
+              <Feather name="x" size={24} color={Colors.light.textGray[100]} />
+            </TouchableOpacity>
+            <ThemedText style={styles.modalTitle}>
+              {selectedForm?.name}
+            </ThemedText>
+          </View>
+          
+          {selectedForm?.filePath && (
+            <WebView
+              source={{ uri: selectedForm.filePath }}
+              style={styles.webview}
+              onError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.warn('WebView error: ', nativeEvent);
+                Alert.alert('Error', 'Could not load the form');
+              }}
+            />
+          )}
+        </View>
+      </Modal>
+
+      {/* Upload Section */}
+      <View style={styles.divider} />
+      <ThemedText type="subtitle" style={styles.sectionTitle}>Upload New Form</ThemedText>
+      
       <TouchableOpacity 
-        style={styles.uploadButton}
+        style={[styles.uploadButton, isUploading && styles.uploadButtonDisabled]}
         onPress={handleFilePick}
         disabled={isUploading}
       >
-        <Feather name="upload" size={24} color={Colors.light.background} />
-        <ThemedText style={styles.uploadButtonText}>
-          {isUploading ? 'Uploading...' : 'Upload Form'}
-        </ThemedText>
+        {isUploading ? (
+          <ActivityIndicator color={Colors.light.background} />
+        ) : (
+          <>
+            <Feather name="upload" size={24} color={Colors.light.background} />
+            <ThemedText style={styles.uploadButtonText}>Upload Form</ThemedText>
+          </>
+        )}
       </TouchableOpacity>
-
-      {/* File List */}
-      {files.map((file) => (
-        <ThemedView key={file.id} variant="elevated" style={styles.fileItem}>
-          <View style={styles.fileInfo}>
-            <Feather name="file-text" size={20} color={Colors.light.textGray[300]} />
-            <View style={styles.fileDetails}>
-              <ThemedText style={styles.fileName}>{file.name}</ThemedText>
-              <ThemedText style={styles.fileDate}>
-                Uploaded {formatDate(file.uploadedAt)}
-              </ThemedText>
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={() => handleDeleteFile(file.id)}
-            style={styles.deleteButton}
-          >
-            <Feather name="trash-2" size={20} color={Colors.light.pink[100]} />
-          </TouchableOpacity>
-        </ThemedView>
-      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: 12,
+    gap: 16,
+  },
+  formCard: {
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+  },
+  formHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  formTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  formName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.light.textGray[100],
+    flex: 1,
+  },
+  formIcon: {
+    marginLeft: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  statusText: {
+    color: Colors.light.background,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  formDetails: {
+    gap: 4,
+  },
+  formText: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.light.textGray[500] + "20",
+    marginVertical: 24,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.textGray[500] + "20",
+    backgroundColor: Colors.light.background,
+    height: 60,
+    marginTop: 40, // Fixed top margin for header
+  },
+  closeButton: {
+    padding: 12,
+    marginLeft: -4,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.light.textGray[100],
+    marginLeft: 8,
+    flex: 1,
+  },
+  webview: {
+    flex: 1,
   },
   uploadButton: {
     flexDirection: 'row',
@@ -129,37 +267,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 8,
   },
+  uploadButtonDisabled: {
+    opacity: 0.5,
+  },
   uploadButtonText: {
     color: Colors.light.background,
     fontSize: 16,
     fontWeight: '600',
   },
-  fileItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    borderRadius: 12,
-  },
-  fileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  fileDetails: {
-    flex: 1,
-  },
-  fileName: {
-    fontSize: 14,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
     color: Colors.light.textGray[100],
-    marginBottom: 4,
-  },
-  fileDate: {
-    fontSize: 12,
-    color: Colors.light.textGray[300],
-  },
-  deleteButton: {
-    padding: 8,
+    marginBottom: 16,
   },
 });

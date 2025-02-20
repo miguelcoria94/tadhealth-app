@@ -1,3 +1,5 @@
+import { Asset } from 'expo-asset';
+
 export const extendedStudentInfo = {
   101: {
     phone: "(555) 123-4567",
@@ -290,6 +292,18 @@ export const forms = [
     sharedBy: "Dr. Smith",
     sharedDate: "2025-01-15",
     lastUpdated: "2025-01-20"
+  },
+  {
+    id: 2,
+    studentId: 101,
+    name: "Field Trip Permission Form",
+    type: "Permission Form",
+    status: "Pending",
+    sharedBy: "Mrs. Johnson",
+    sharedDate: "2025-02-15",
+    lastUpdated: "2025-02-15",
+    // Use asset module resolution
+    filePath: Asset.fromModule(require('../../assets/forms/consentform_a.pdf')).uri
   }
 ];
 

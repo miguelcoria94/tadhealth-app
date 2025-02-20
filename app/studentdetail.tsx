@@ -647,75 +647,12 @@ export default function StudentDetailScreen() {
     </View>
   );
   
-  // const renderFormsTab = () => (
-  //   <View>
-  //     {forms
-  //       .filter(form => form.studentId === student.id)
-  //       .map(form => (
-  //         <ThemedView key={form.id} variant="elevated" style={styles.formCard}>
-  //           <View style={styles.formHeader}>
-  //             <ThemedText style={styles.formName}>{form.name}</ThemedText>
-  //             <View style={[
-  //               styles.statusBadge,
-  //               { 
-  //                 backgroundColor: 
-  //                   form.status === 'Completed' ? Colors.light.success :
-  //                   form.status === 'Pending' ? Colors.light.warning :
-  //                   Colors.light.pink[100]
-  //               }
-  //             ]}>
-  //               <ThemedText style={styles.statusText}>{form.status}</ThemedText>
-  //             </View>
-  //           </View>
-  //           <View style={styles.formDetails}>
-  //             <ThemedText style={styles.formText}>Type: {form.type}</ThemedText>
-  //             <ThemedText style={styles.formText}>Shared by: {form.sharedBy}</ThemedText>
-  //             <ThemedText style={styles.formText}>Date: {formatDate(form.sharedDate)}</ThemedText>
-  //           </View>
-  //         </ThemedView>
-  //       ))}
-  //   </View>
-  // );
-
   const renderFormsTab = () => (
-    <View>
-      {/* Existing forms list */}
-      {forms
-        .filter(form => form.studentId === student.id)
-        .map(form => (
-          <ThemedView key={form.id} variant="elevated" style={styles.formCard}>
-            <View style={styles.formHeader}>
-              <ThemedText style={styles.formName}>{form.name}</ThemedText>
-              <View style={[
-                styles.statusBadge,
-                { 
-                  backgroundColor: 
-                    form.status === 'Completed' ? Colors.light.success :
-                    form.status === 'Pending' ? Colors.light.warning :
-                    Colors.light.pink[100]
-                }
-              ]}>
-                <ThemedText style={styles.statusText}>{form.status}</ThemedText>
-              </View>
-            </View>
-            <View style={styles.formDetails}>
-              <ThemedText style={styles.formText}>Type: {form.type}</ThemedText>
-              <ThemedText style={styles.formText}>Shared by: {form.sharedBy}</ThemedText>
-              <ThemedText style={styles.formText}>Date: {formatDate(form.sharedDate)}</ThemedText>
-            </View>
-          </ThemedView>
-        ))}
-  
-      {/* Add a divider */}
-      <View style={styles.divider} />
-  
-      {/* File upload section */}
-      <ThemedView variant="elevated" style={styles.formCard}>
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
-          Upload New Form
-        </ThemedText>
-        <FileUploadForms />
-      </ThemedView>
+    <View style={styles.tabContent}>
+      <FileUploadForms 
+        studentId={student.id}
+        existingForms={forms}
+      />
     </View>
   );
 
