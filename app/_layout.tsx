@@ -38,6 +38,13 @@ function RootLayoutNav() {
           presentation: "push",
         }}
       />
+    <Stack.Screen
+    name="appointment-create"
+    options={{
+      headerShown: false,
+      presentation: "modal",
+    }}
+  />
     </Stack>
   );
 }

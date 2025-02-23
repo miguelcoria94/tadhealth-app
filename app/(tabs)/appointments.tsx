@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Image, ScrollView, StyleSheet, View, TextInput, TouchableOpacity } from "react-native";
+// Add this line at the top with other imports
+import { useRouter } from 'expo-router';
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -8,6 +10,7 @@ import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
 
 export default function AppointmentsScreen() {
+  const router = useRouter(); 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
@@ -56,10 +59,13 @@ export default function AppointmentsScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <TouchableOpacity style={styles.createButton}>
-          <Feather name="calendar" size={20} color={Colors.light.background} />
-          <ThemedText style={styles.createButtonText}>New</ThemedText>
-        </TouchableOpacity>
+<TouchableOpacity 
+  style={styles.createButton}
+  onPress={() => router.push("/appointment-create")}
+>
+  <Feather name="calendar" size={20} color={Colors.light.background} />
+  <ThemedText style={styles.createButtonText}>New</ThemedText>
+</TouchableOpacity>
       </View>
       <ThemedText type="title" style={styles.headerTitle}>
         Appointments

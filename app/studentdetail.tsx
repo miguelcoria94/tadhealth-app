@@ -568,7 +568,16 @@ export default function StudentDetailScreen() {
       </ThemedView>
   
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.actionButton} onPress={() => {}}>
+      <Pressable 
+              style={styles.actionButton} 
+              onPress={() => router.push({
+                pathname: "/appointment-create",
+                params: { 
+                  studentId: student.id,
+                  studentName: student.name 
+                }
+              })}
+            >
           <Feather name="calendar" size={20} color={Colors.light.background} />
           <ThemedText style={styles.actionButtonText}>Book Appointment</ThemedText>
         </Pressable>
