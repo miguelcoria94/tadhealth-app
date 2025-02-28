@@ -38,11 +38,18 @@ function RootLayoutNav() {
           presentation: "push",
         }}
       />
-    <Stack.Screen
+<Stack.Screen
+  name="create-referral"
+  options={{
+    headerShown: false,
+    presentation: "push",
+  }}
+/>
+<Stack.Screen
     name="appointment-create"
     options={{
       headerShown: false,
-      presentation: "modal",
+      presentation: "push", 
     }}
   />
     </Stack>

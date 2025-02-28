@@ -581,10 +581,19 @@ export default function StudentDetailScreen() {
           <Feather name="calendar" size={20} color={Colors.light.background} />
           <ThemedText style={styles.actionButtonText}>Book Appointment</ThemedText>
         </Pressable>
-        <Pressable style={styles.actionButton} onPress={() => {}}>
-          <Feather name="file-plus" size={20} color={Colors.light.background} />
-          <ThemedText style={styles.actionButtonText}>Create Referral</ThemedText>
-        </Pressable>
+        <Pressable 
+  style={styles.actionButton} 
+  onPress={() => router.push({
+    pathname: "/create-referral",
+    params: { 
+      studentId: student.id,
+      studentName: student.name 
+    }
+  })}
+>
+  <Feather name="file-plus" size={20} color={Colors.light.background} />
+  <ThemedText style={styles.actionButtonText}>Create Referral</ThemedText>
+</Pressable>
       </View>
   
       <ThemedView variant="elevated" style={styles.infoCard}>
