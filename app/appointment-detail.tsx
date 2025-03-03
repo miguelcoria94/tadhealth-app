@@ -63,6 +63,7 @@ interface Appointment {
 }
 
 const TABS = [
+  { id: 'details', label: 'Details', icon: 'info' },
   { id: 'activity', label: 'Activity', icon: 'message-square' },
   { id: 'forms', label: 'Forms', icon: 'file-text' },
   { id: 'referrals', label: 'Referrals', icon: 'git-pull-request' },
@@ -94,7 +95,7 @@ const getStatusColor = (status: string) => {
 export default function AppointmentDetailScreen() {
   const router = useRouter();
   const { appointmentId } = useLocalSearchParams();
-  const [activeTab, setActiveTab] = useState<TabId>('activity');
+  const [activeTab, setActiveTab] = useState<TabId>('details');
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingComment, setIsAddingComment] = useState(false);
@@ -485,8 +486,92 @@ export default function AppointmentDetailScreen() {
     </View>
   );
 
+  const renderDetailsTab = () => (
+    <View>
+      <ThemedView variant="elevated" style={styles.infoCard}>
+        <ThemedText type="subtitle" style={styles.cardTitle}>Appointment Information</ThemedText>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Type</ThemedText>
+          <ThemedText style={styles.value}>{appointment.type}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Date</ThemedText>
+          <ThemedText style={styles.value}>{formatDate(appointment.time.date)}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Time</ThemedText>
+          <ThemedText style={styles.value}>{appointment.time.time}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Location</ThemedText>
+          <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Status</ThemedText>
+          <ThemedText 
+            style={[
+              styles.statusValue,
+              { color: getStatusColor(appointment.status) }
+            ]}
+          >
+            {appointment.status.toUpperCase()}
+          </ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Priority</ThemedText>
+          <ThemedText 
+            style={[
+              styles.priorityValue,
+              { color: getPriorityColor(appointment.priority) }
+            ]}
+          >
+            {appointment.priority.toUpperCase()}
+          </ThemedText>
+        </View>
+      </ThemedView>
+  
+      <ThemedView variant="elevated" style={styles.infoCard}>
+        <ThemedText type="subtitle" style={styles.cardTitle}>Student Information</ThemedText>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Name</ThemedText>
+          <ThemedText style={styles.value}>{appointment.student.name}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>ID</ThemedText>
+          <ThemedText style={styles.value}>{appointment.student.id}</ThemedText>
+        </View>
+      </ThemedView>
+  
+      <ThemedView variant="elevated" style={styles.infoCard}>
+        <ThemedText type="subtitle" style={styles.cardTitle}>Professional Information</ThemedText>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Name</ThemedText>
+          <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
+        </View>
+        <View style={styles.infoRow}>
+          <ThemedText style={styles.label}>Specialization</ThemedText>
+          <ThemedText style={styles.value}>{appointment.counselor.specialization}</ThemedText>
+        </View>
+      </ThemedView>
+  
+      {appointment.notes && appointment.notes.length > 0 && (
+        <ThemedView variant="elevated" style={styles.infoCard}>
+          <ThemedText type="subtitle" style={styles.cardTitle}>Notes</ThemedText>
+          {appointment.notes.map((note, index) => (
+            <View key={index} style={styles.noteItem}>
+              <ThemedText style={styles.noteTitle}>{note.title}</ThemedText>
+              <ThemedText style={styles.noteBody}>{note.body}</ThemedText>
+            </View>
+          ))}
+        </ThemedView>
+      )}
+    </View>
+  );
+
   const renderActiveTabContent = () => {
     switch (activeTab) {
+      case 'details':
+        return renderDetailsTab();
       case 'activity':
         return renderActivityTab();
       case 'forms':
@@ -498,7 +583,7 @@ export default function AppointmentDetailScreen() {
       case 'billing':
         return renderBillingTab();
       default:
-        return renderActivityTab();
+        return renderDetailsTab();
     }
   };
 
@@ -519,91 +604,52 @@ export default function AppointmentDetailScreen() {
         </View>
       </View>
 
-      {/* Appointment Info Card */}
-      <ThemedView variant="elevated" style={styles.infoCard}>
-        <View style={styles.infoCardHeader}>
-          <View>
-            <ThemedText type="subtitle">{appointment.type}</ThemedText>
-            <ThemedText style={styles.dateTimeText}>
-              {formatDate(appointment.time.date)} at {appointment.time.time}
-            </ThemedText>
-          </View>
-          <ThemedView 
+    {/* Tabs */}
+    <View style={styles.tabsContainer}>
+      {TABS.map((tab) => (
+        <Pressable
+          key={tab.id}
+          style={[
+            styles.tab,
+            activeTab === tab.id && styles.activeTab
+          ]}
+          onPress={() => setActiveTab(tab.id)}
+        >
+          <Feather 
+            name={tab.icon} 
+            size={18} 
+            color={activeTab === tab.id ? 
+              Colors.light.green[200] : 
+              Colors.light.textGray[300]
+            } 
+          />
+          <ThemedText
             style={[
-              styles.priorityBadge,
-              { backgroundColor: getPriorityColor(appointment.priority) }
+              styles.tabText,
+              activeTab === tab.id && styles.activeTabText
             ]}
+            numberOfLines={1}
           >
-            <ThemedText style={styles.priorityText}>
-              {appointment.priority.toUpperCase()}
-            </ThemedText>
-          </ThemedView>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.infoDetails}>
-          <View style={styles.detailRow}>
-            <ThemedText style={styles.label}>Student</ThemedText>
-            <ThemedText style={styles.value}>{appointment.student.name}</ThemedText>
-          </View>
-          <View style={styles.detailRow}>
-            <ThemedText style={styles.label}>Professional</ThemedText>
-            <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
-          </View>
-          <View style={styles.detailRow}>
-            <ThemedText style={styles.label}>Location</ThemedText>
-            <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
-          </View>
-          <View style={styles.detailRow}>
-            <ThemedText style={styles.label}>Status</ThemedText>
-            <ThemedText 
-              style={[
-                styles.statusValue,
-                { color: getStatusColor(appointment.status) }
-              ]}
-            >
-              {appointment.status.toUpperCase()}
-            </ThemedText>
-          </View>
-        </View>
-      </ThemedView>
+            {tab.label}
+          </ThemedText>
+        </Pressable>
+      ))}
+    </View>
 
-      {/* Tabs */}
-      <View style={styles.tabsContainer}>
-        {TABS.map((tab) => (
-          <Pressable
-            key={tab.id}
-            style={[
-              styles.tab,
-              activeTab === tab.id && styles.activeTab
-            ]}
-            onPress={() => setActiveTab(tab.id)}
-          >
-            <Feather 
-              name={tab.icon} 
-              size={18} 
-              color={activeTab === tab.id ? 
-                Colors.light.green[200] : 
-                Colors.light.textGray[300]
-              } 
-            />
-            <ThemedText
-              style={[
-                styles.tabText,
-                activeTab === tab.id && styles.activeTabText
-              ]}
-              numberOfLines={1}
-            >
-              {tab.label}
-            </ThemedText>
-          </Pressable>
-        ))}
-      </View>
-
-      {/* Content */}
-      <View style={styles.tabContentContainer}>
-        {renderActiveTabContent()}
-      </View>
-    </SafeAreaView>
+    {/* Content */}
+    <ScrollView 
+      style={styles.scrollView} 
+      contentContainerStyle={styles.scrollContent}
+    >
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.light.green[200]} />
+        </View>
+      ) : (
+        renderActiveTabContent()
+      )}
+    </ScrollView>
+  </SafeAreaView>
   );
 }
 
@@ -717,6 +763,7 @@ const styles = StyleSheet.create({
   },
   tabContentContainer: {
     flex: 1,
+    paddingBottom: 20,
   },
   tabContent: {
     flex: 1,
@@ -938,5 +985,47 @@ const styles = StyleSheet.create({
   },
   billingDetails: {
     gap: 12,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  cardTitle: {
+    marginBottom: 12,
+    color: Colors.light.textGray[100],
+  },
+  infoCard: {
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+  },
+  noteItem: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.textGray[500] + "20",
+  },
+  noteTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: Colors.light.textGray[100],
+    marginBottom: 4,
+  },
+  noteBody: {
+    color: Colors.light.textGray[100],
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  priorityValue: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
 });
