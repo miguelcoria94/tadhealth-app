@@ -4,6 +4,7 @@ import {
   Platform,
   View,
   TouchableOpacity,
+  Pressable, // Add this import
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -11,9 +12,12 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from 'expo-router'; 
+import { appointments } from "@/assets/dummyData/appointments"; 
 
 export default function HomeScreen() {
   const { signOut } = useAuth();
+  const router = useRouter();
   const handleLogout = async () => {
     console.log("Logout pressed");
     try {
@@ -165,19 +169,35 @@ export default function HomeScreen() {
 
       {/* Today's Schedule */}
       <ThemedView variant="elevated" style={styles.sectionCard}>
-        <ThemedText type="subtitle">Today's Schedule</ThemedText>
-        {counselorInfo.todaysSessions.map((session, index) => (
-          <View key={index} style={styles.sessionItem}>
-            <ThemedText type="defaultSemiBold" style={styles.sessionTime}>
-              {session.time}
-            </ThemedText>
-            <View style={styles.sessionDetails}>
-              <ThemedText>{session.student}</ThemedText>
-              <ThemedText type="caption">{session.type}</ThemedText>
-            </View>
-          </View>
-        ))}
-      </ThemedView>
+  <ThemedText type="subtitle">Today's Schedule</ThemedText>
+  {counselorInfo.todaysSessions.map((session, index) => (
+    <Pressable 
+      key={index} 
+      style={styles.sessionItem}
+      onPress={() => {
+        // In a real app, you would have appointment IDs here
+        // For demo purposes we're using a hardcoded ID from the appointments array
+        const appointmentId = appointments.find(a => 
+          a.student.name === session.student && 
+          a.type === session.type
+        )?.id || appointments[0].id;
+        
+        router.push({
+          pathname: "/appointment-detail",
+          params: { appointmentId }
+        });
+      }}
+    >
+      <ThemedText type="defaultSemiBold" style={styles.sessionTime}>
+        {session.time}
+      </ThemedText>
+      <View style={styles.sessionDetails}>
+        <ThemedText>{session.student}</ThemedText>
+        <ThemedText type="caption">{session.type}</ThemedText>
+      </View>
+    </Pressable>
+  ))}
+</ThemedView>
 
       {/* Notifications */}
       <ThemedView variant="elevated" style={styles.sectionCard}>

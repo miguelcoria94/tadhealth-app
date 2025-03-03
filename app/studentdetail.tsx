@@ -304,42 +304,50 @@ export default function StudentDetailScreen() {
       {studentAppointments
         .filter(apt => apt.status === 'pending')
         .map((appointment) => (
-          <ThemedView key={appointment.id} variant="elevated" style={styles.sessionCard}>
-            <View style={styles.sessionHeader}>
-              <View>
-                <ThemedText type="subtitle">{appointment.type}</ThemedText>
-                <ThemedText style={styles.sessionTime}>
-                  {formatDate(appointment.time.date)} at {formatTime(appointment.time.time)}
-                </ThemedText>
+          <Pressable 
+            key={appointment.id} 
+            onPress={() => router.push({
+              pathname: "/appointment-detail",
+              params: { appointmentId: appointment.id }
+            })}
+          >
+            <ThemedView variant="elevated" style={styles.sessionCard}>
+              <View style={styles.sessionHeader}>
+                <View>
+                  <ThemedText type="subtitle">{appointment.type}</ThemedText>
+                  <ThemedText style={styles.sessionTime}>
+                    {formatDate(appointment.time.date)} at {formatTime(appointment.time.time)}
+                  </ThemedText>
+                </View>
+                <ThemedView 
+                  style={[
+                    styles.priorityBadge,
+                    { backgroundColor: getPriorityColor(appointment.priority) }
+                  ]}
+                >
+                  <ThemedText style={styles.priorityText}>
+                    {appointment.priority.toUpperCase()}
+                  </ThemedText>
+                </ThemedView>
               </View>
-              <ThemedView 
-                style={[
-                  styles.priorityBadge,
-                  { backgroundColor: getPriorityColor(appointment.priority) }
-                ]}
-              >
-                <ThemedText style={styles.priorityText}>
-                  {appointment.priority.toUpperCase()}
-                </ThemedText>
-              </ThemedView>
-            </View>
-            <View style={styles.sessionDetails}>
-              <View style={styles.detailRow}>
-                <ThemedText style={styles.label}>Location</ThemedText>
-                <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
+              <View style={styles.sessionDetails}>
+                <View style={styles.detailRow}>
+                  <ThemedText style={styles.label}>Location</ThemedText>
+                  <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
+                </View>
+                <View style={styles.detailRow}>
+                  <ThemedText style={styles.label}>Counselor</ThemedText>
+                  <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
+                </View>
+                <View style={styles.detailRow}>
+                  <ThemedText style={styles.label}>Specialization</ThemedText>
+                  <ThemedText style={styles.value}>{appointment.counselor.specialization}</ThemedText>
+                </View>
               </View>
-              <View style={styles.detailRow}>
-                <ThemedText style={styles.label}>Counselor</ThemedText>
-                <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
-              </View>
-              <View style={styles.detailRow}>
-                <ThemedText style={styles.label}>Specialization</ThemedText>
-                <ThemedText style={styles.value}>{appointment.counselor.specialization}</ThemedText>
-              </View>
-            </View>
-          </ThemedView>
+            </ThemedView>
+          </Pressable>
         ))}
-
+  
       {/* Past Sessions */}
       <ThemedText type="subtitle" style={[styles.sectionTitle, { marginTop: 24 }]}>
         Past Sessions
@@ -347,41 +355,49 @@ export default function StudentDetailScreen() {
       {studentAppointments
         .filter(apt => apt.status === 'completed')
         .map((appointment) => (
-          <ThemedView key={appointment.id} variant="elevated" style={styles.sessionCard}>
-            <View style={styles.sessionHeader}>
-              <View>
-                <ThemedText type="subtitle">{appointment.type}</ThemedText>
-                <ThemedText style={styles.sessionTime}>
-                  {formatDate(appointment.time.date)} at {formatTime(appointment.time.time)}
-                </ThemedText>
-              </View>
-              <ThemedView 
-                style={[styles.statusBadge, { backgroundColor: Colors.light.success }]}
-              >
-                <ThemedText style={styles.statusText}>Completed</ThemedText>
-              </ThemedView>
-            </View>
-            <View style={styles.sessionDetails}>
-              <View style={styles.detailRow}>
-                <ThemedText style={styles.label}>Location</ThemedText>
-                <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
-              </View>
-              <View style={styles.detailRow}>
-                <ThemedText style={styles.label}>Counselor</ThemedText>
-                <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
-              </View>
-              {appointment.notes.length > 0 && (
-                <View style={styles.sessionNotes}>
-                  <ThemedText style={styles.label}>Session Notes</ThemedText>
-                  {appointment.notes.map((note, index) => (
-                    <ThemedText key={index} style={styles.sessionNote}>
-                      {note.body}
-                    </ThemedText>
-                  ))}
+          <Pressable 
+            key={appointment.id} 
+            onPress={() => router.push({
+              pathname: "/appointment-detail",
+              params: { appointmentId: appointment.id }
+            })}
+          >
+            <ThemedView variant="elevated" style={styles.sessionCard}>
+              <View style={styles.sessionHeader}>
+                <View>
+                  <ThemedText type="subtitle">{appointment.type}</ThemedText>
+                  <ThemedText style={styles.sessionTime}>
+                    {formatDate(appointment.time.date)} at {formatTime(appointment.time.time)}
+                  </ThemedText>
                 </View>
-              )}
-            </View>
-          </ThemedView>
+                <ThemedView 
+                  style={[styles.statusBadge, { backgroundColor: Colors.light.success }]}
+                >
+                  <ThemedText style={styles.statusText}>Completed</ThemedText>
+                </ThemedView>
+              </View>
+              <View style={styles.sessionDetails}>
+                <View style={styles.detailRow}>
+                  <ThemedText style={styles.label}>Location</ThemedText>
+                  <ThemedText style={styles.value}>{appointment.time.location}</ThemedText>
+                </View>
+                <View style={styles.detailRow}>
+                  <ThemedText style={styles.label}>Counselor</ThemedText>
+                  <ThemedText style={styles.value}>{appointment.counselor.name}</ThemedText>
+                </View>
+                {appointment.notes.length > 0 && (
+                  <View style={styles.sessionNotes}>
+                    <ThemedText style={styles.label}>Session Notes</ThemedText>
+                    {appointment.notes.map((note, index) => (
+                      <ThemedText key={index} style={styles.sessionNote}>
+                        {note.body}
+                      </ThemedText>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </ThemedView>
+          </Pressable>
         ))}
     </View>
   );

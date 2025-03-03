@@ -38,20 +38,27 @@ function RootLayoutNav() {
           presentation: "push",
         }}
       />
-<Stack.Screen
-  name="create-referral"
-  options={{
-    headerShown: false,
-    presentation: "push",
-  }}
-/>
-<Stack.Screen
-    name="appointment-create"
-    options={{
-      headerShown: false,
-      presentation: "push", 
-    }}
-  />
+      <Stack.Screen
+        name="create-referral"
+        options={{
+          headerShown: false,
+          presentation: "push",
+        }}
+      />
+      <Stack.Screen
+        name="appointment-create"
+        options={{
+          headerShown: false,
+          presentation: "push", 
+        }}
+      />
+      <Stack.Screen
+        name="appointment-detail"
+        options={{
+          headerShown: false,
+          presentation: "push", 
+        }}
+      />
     </Stack>
   );
 }

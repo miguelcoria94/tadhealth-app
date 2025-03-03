@@ -8,6 +8,9 @@ This document outlines the authentication implementation for the TADHealth mobil
 app/
   ├── _layout.tsx        # Root layout with auth navigation
   ├── index.tsx          # Root redirect
+  ├── create-referral.tsx          # Root redirect
+  ├── studentdetail.tsx          # Root redirect
+  ├── appointment-create.tsx          # Root redirect
   ├── (auth)/
   │   ├── _layout.tsx    # Auth layout with navigation logic
   │   └── login.tsx      # Login screen

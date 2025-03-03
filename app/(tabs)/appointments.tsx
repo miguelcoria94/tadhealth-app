@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, View, TextInput, TouchableOpacity } from "react-native";
+import { Image, ScrollView, StyleSheet, View, TextInput, TouchableOpacity, Pressable} from "react-native";
 // Add this line at the top with other imports
 import { useRouter } from 'expo-router';
 import { ThemedText } from "@/components/ThemedText";
@@ -218,110 +218,118 @@ export default function AppointmentsScreen() {
 
   const renderAppointmentCard = (appointment) => {
     const profileImage = getProfileImage(appointment.student);
-
+  
     return (
-      <ThemedView key={appointment.id} variant="elevated" style={styles.card}>
-        <View style={styles.cardContent}>
-          <View style={styles.header}>
-            <View style={styles.nameAndStatus}>
-              <Image source={profileImage} style={styles.profileImage} />
-              <View style={styles.nameTypeContainer}>
-                <ThemedText type="subtitle" style={styles.studentName}>
-                  {appointment.student.name}
-                </ThemedText>
-                <ThemedText style={styles.appointmentType}>
-                  {appointment.type}
-                </ThemedText>
+      <Pressable 
+        key={appointment.id} 
+        onPress={() => router.push({
+          pathname: "/appointment-detail",
+          params: { appointmentId: appointment.id }
+        })}
+      >
+        <ThemedView variant="elevated" style={styles.card}>
+          <View style={styles.cardContent}>
+            <View style={styles.header}>
+              <View style={styles.nameAndStatus}>
+                <Image source={profileImage} style={styles.profileImage} />
+                <View style={styles.nameTypeContainer}>
+                  <ThemedText type="subtitle" style={styles.studentName}>
+                    {appointment.student.name}
+                  </ThemedText>
+                  <ThemedText style={styles.appointmentType}>
+                    {appointment.type}
+                  </ThemedText>
+                </View>
               </View>
-            </View>
-            <TouchableOpacity style={styles.moreButton}>
-              <Feather
-                name="more-vertical"
-                size={20}
-                color={Colors.light.textGray[300]}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.statusRow}>
-            <ThemedText
-              style={[
-                styles.statusText,
-                { color: getStatusColor(appointment.status) },
-              ]}
-            >
-              {appointment.status.charAt(0).toUpperCase() +
-                appointment.status.slice(1)}
-            </ThemedText>
-            <ThemedText style={styles.priorityText}>
-              {appointment.priority.toUpperCase()} Priority
-            </ThemedText>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoContainer}>
-            <View style={styles.infoRow}>
-              <View style={styles.iconLabel}>
+              <TouchableOpacity style={styles.moreButton}>
                 <Feather
-                  name="clock"
-                  size={16}
+                  name="more-vertical"
+                  size={20}
                   color={Colors.light.textGray[300]}
                 />
-                <ThemedText style={[styles.label, { marginLeft: 8 }]}>
-                  Time
-                </ThemedText>
-              </View>
-              <ThemedText style={styles.value}>
-                {`${formatDate(appointment.time.date)} at ${
-                  appointment.time.time
-                }`}
+              </TouchableOpacity>
+            </View>
+  
+            <View style={styles.statusRow}>
+              <ThemedText
+                style={[
+                  styles.statusText,
+                  { color: getStatusColor(appointment.status) },
+                ]}
+              >
+                {appointment.status.charAt(0).toUpperCase() +
+                  appointment.status.slice(1)}
+              </ThemedText>
+              <ThemedText style={styles.priorityText}>
+                {appointment.priority.toUpperCase()} Priority
               </ThemedText>
             </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.iconLabel}>
-                <Feather
-                  name="map-pin"
-                  size={16}
-                  color={Colors.light.textGray[300]}
-                />
-                <ThemedText style={[styles.label, { marginLeft: 8 }]}>
-                  Location
+  
+            <View style={styles.divider} />
+  
+            <View style={styles.infoContainer}>
+              <View style={styles.infoRow}>
+                <View style={styles.iconLabel}>
+                  <Feather
+                    name="clock"
+                    size={16}
+                    color={Colors.light.textGray[300]}
+                  />
+                  <ThemedText style={[styles.label, { marginLeft: 8 }]}>
+                    Time
+                  </ThemedText>
+                </View>
+                <ThemedText style={styles.value}>
+                  {`${formatDate(appointment.time.date)} at ${
+                    appointment.time.time
+                  }`}
                 </ThemedText>
               </View>
-              <ThemedText style={styles.value}>
-                {appointment.time.location}
-              </ThemedText>
+  
+              <View style={styles.infoRow}>
+                <View style={styles.iconLabel}>
+                  <Feather
+                    name="map-pin"
+                    size={16}
+                    color={Colors.light.textGray[300]}
+                  />
+                  <ThemedText style={[styles.label, { marginLeft: 8 }]}>
+                    Location
+                  </ThemedText>
+                </View>
+                <ThemedText style={styles.value}>
+                  {appointment.time.location}
+                </ThemedText>
+              </View>
+  
+              <View style={styles.infoRow}>
+                <View style={styles.iconLabel}>
+                  <Feather
+                    name="user"
+                    size={16}
+                    color={Colors.light.textGray[300]}
+                  />
+                  <ThemedText style={[styles.label, { marginLeft: 8 }]}>
+                    Counselor
+                  </ThemedText>
+                </View>
+                <ThemedText style={styles.value}>
+                  {appointment.counselor.name}
+                </ThemedText>
+              </View>
             </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.iconLabel}>
-                <Feather
-                  name="user"
-                  size={16}
-                  color={Colors.light.textGray[300]}
-                />
-                <ThemedText style={[styles.label, { marginLeft: 8 }]}>
-                  Counselor
-                </ThemedText>
-              </View>
-              <ThemedText style={styles.value}>
-                {appointment.counselor.name}
-              </ThemedText>
+  
+            <View style={styles.cardActions}>
+              <TouchableOpacity style={styles.acceptButton}>
+                <ThemedText style={styles.actionButtonText}>Accept</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.declineButton}>
+                <ThemedText style={styles.declineButtonText}>Decline</ThemedText>
+              </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.cardActions}>
-            <TouchableOpacity style={styles.acceptButton}>
-              <ThemedText style={styles.actionButtonText}>Accept</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.declineButton}>
-              <ThemedText style={styles.declineButtonText}>Decline</ThemedText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ThemedView>
+        </ThemedView>
+      </Pressable>
     );
   };
 
