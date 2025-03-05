@@ -263,11 +263,20 @@ export default function AppointmentDetailScreen() {
           <ThemedView key={index} variant="elevated" style={styles.formCard}>
             <View style={styles.formHeader}>
               <ThemedText type="subtitle">{form.name}</ThemedText>
-              <ThemedView 
-                style={[styles.statusBadge, { backgroundColor: Colors.light.success }]}
-              >
-                <ThemedText style={styles.statusText}>{form.status}</ThemedText>
-              </ThemedView>
+              <View style={styles.badgeContainer}>
+                <ThemedView 
+                  style={[
+                    styles.statusBadge, 
+                    { 
+                      backgroundColor: form.status === 'Complete' 
+                        ? Colors.light.success 
+                        : Colors.light.warning
+                    }
+                  ]}
+                >
+                  <ThemedText style={styles.statusBadgeText}>{form.status}</ThemedText>
+                </ThemedView>
+              </View>
             </View>
             <View style={styles.formDetails}>
               <ThemedText style={styles.formText}>Uploaded: {formatDate(form.uploadDate)}</ThemedText>
@@ -301,18 +310,20 @@ export default function AppointmentDetailScreen() {
           <ThemedView key={index} variant="elevated" style={styles.referralCard}>
             <View style={styles.referralHeader}>
               <ThemedText type="subtitle">{referral.type}</ThemedText>
-              <ThemedView 
-                style={[
-                  styles.statusBadge, 
-                  { 
-                    backgroundColor: referral.status === 'Active' 
-                      ? Colors.light.success 
-                      : Colors.light.textGray[300] 
-                  }
-                ]}
-              >
-                <ThemedText style={styles.statusText}>{referral.status}</ThemedText>
-              </ThemedView>
+              <View style={styles.badgeContainer}>
+                <ThemedView 
+                  style={[
+                    styles.statusBadge, 
+                    { 
+                      backgroundColor: referral.status === 'Active' 
+                        ? Colors.light.success 
+                        : Colors.light.textGray[300] 
+                    }
+                  ]}
+                >
+                  <ThemedText style={styles.statusBadgeText}>{referral.status}</ThemedText>
+                </ThemedView>
+              </View>
             </View>
             <View style={styles.referralDetails}>
               <ThemedText style={styles.referralText}>
@@ -442,18 +453,20 @@ export default function AppointmentDetailScreen() {
         <ThemedView variant="elevated" style={styles.billingCard}>
           <View style={styles.billingHeader}>
             <ThemedText type="subtitle">Billing Information</ThemedText>
-            <ThemedView 
-              style={[
-                styles.statusBadge, 
-                { 
-                  backgroundColor: appointment.billingStatus === 'Submitted' 
-                    ? Colors.light.success 
-                    : Colors.light.warning 
-                }
-              ]}
-            >
-              <ThemedText style={styles.statusText}>{appointment.billingStatus}</ThemedText>
-            </ThemedView>
+            <View style={styles.badgeContainer}>
+              <ThemedView 
+                style={[
+                  styles.statusBadge, 
+                  { 
+                    backgroundColor: appointment.billingStatus === 'Submitted' 
+                      ? Colors.light.success 
+                      : Colors.light.warning 
+                  }
+                ]}
+              >
+                <ThemedText style={styles.statusBadgeText}>{appointment.billingStatus}</ThemedText>
+              </ThemedView>
+            </View>
           </View>
           <View style={styles.billingDetails}>
             <View style={styles.detailRow}>
@@ -487,7 +500,7 @@ export default function AppointmentDetailScreen() {
   );
 
   const renderDetailsTab = () => (
-    <View>
+    <>
       <ThemedView variant="elevated" style={styles.infoCard}>
         <ThemedText type="subtitle" style={styles.cardTitle}>Appointment Information</ThemedText>
         <View style={styles.infoRow}>
@@ -565,9 +578,8 @@ export default function AppointmentDetailScreen() {
           ))}
         </ThemedView>
       )}
-    </View>
+    </>
   );
-
   const renderActiveTabContent = () => {
     switch (activeTab) {
       case 'details':
@@ -681,10 +693,6 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     fontSize: 16,
     marginTop: 4,
-  },
-  infoCard: {
-    margin: 16,
-    borderRadius: 12,
   },
   infoCardHeader: {
     flexDirection: 'row',
@@ -843,9 +851,12 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     color: Colors.light.textGray[300],
+    padding: 16,
     fontSize: 16,
     marginBottom: 16,
     textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionButton: {
     backgroundColor: Colors.light.green[200],
@@ -867,11 +878,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    flexWrap: 'wrap',
   },
   statusText: {
     color: Colors.light.background,
@@ -1027,5 +1034,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    minWidth: 80,
+    maxWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusBadgeText: {
+    color: Colors.light.background,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  referralHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  billingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    flexWrap: 'wrap',
   },
 });
