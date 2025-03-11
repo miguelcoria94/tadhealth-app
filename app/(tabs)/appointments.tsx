@@ -1,16 +1,56 @@
 import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, View, TextInput, TouchableOpacity, Pressable} from "react-native";
-// Add this line at the top with other imports
-import { useRouter } from 'expo-router';
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Pressable,
+  Platform,
+  Text,
+} from "react-native";
+import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { appointments } from "@/assets/dummyData/appointments";
+import { SafeAreaView as SafeAreaContext } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
+import { appointments } from "@/assets/dummyData/appointments";
+
+// Define type for appointment and student
+interface Student {
+  id: number;
+  name: string;
+  age: number;
+  grade: number;
+  mentalState: string;
+  consent: {
+    studentConsent: boolean;
+    parentConsent: boolean;
+  };
+}
+
+interface Appointment {
+  id: number;
+  student: Student;
+  counselor: {
+    id: number;
+    name: string;
+    specialization: string;
+  };
+  time: {
+    date: string;
+    time: string;
+    location: string;
+  };
+  type: string;
+  status: string;
+  priority: string;
+  notes: any[];
+}
 
 export default function AppointmentsScreen() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
@@ -24,8 +64,6 @@ export default function AppointmentsScreen() {
       return a.time.date === today;
     }).length,
   };
-
-  // Add this before the return statement
 
   // Filter appointments based on search and filter
   const filteredAppointments = appointments.filter((appointment) => {
@@ -59,13 +97,13 @@ export default function AppointmentsScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-<TouchableOpacity 
-  style={styles.createButton}
-  onPress={() => router.push("/appointment-create")}
->
-  <Feather name="calendar" size={20} color={Colors.light.background} />
-  <ThemedText style={styles.createButtonText}>New</ThemedText>
-</TouchableOpacity>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => router.push("/appointment-create")}
+        >
+          <Feather name="calendar" size={20} color={Colors.light.background} />
+          <ThemedText style={styles.createButtonText}>New</ThemedText>
+        </TouchableOpacity>
       </View>
       <ThemedText type="title" style={styles.headerTitle}>
         Appointments
@@ -74,96 +112,105 @@ export default function AppointmentsScreen() {
   );
 
   const renderStatsCard = () => (
-    <ThemedView variant="elevated" style={styles.statsCard}>
+    <View style={styles.statsCard}>
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <ThemedText style={styles.statNumber}>{stats.total}</ThemedText>
-          <ThemedText type="caption">Total</ThemedText>
+          <Text style={styles.statNumber}>{stats.total}</Text>
+          <Text style={styles.statLabel}>Total</Text>
         </View>
+
         <View style={styles.statDivider} />
+
         <View style={styles.statItem}>
-          <ThemedText style={styles.statNumber}>{stats.completed}</ThemedText>
-          <ThemedText type="caption">Completed</ThemedText>
+          <Text style={styles.statNumber}>{stats.pending}</Text>
+          <Text style={styles.statLabel}>Pending</Text>
         </View>
+
         <View style={styles.statDivider} />
+
         <View style={styles.statItem}>
-          <ThemedText style={styles.statNumber}>{stats.pending}</ThemedText>
-          <ThemedText type="caption">Pending</ThemedText>
+          <Text style={styles.statNumber}>{stats.completed}</Text>
+          <Text style={styles.statLabel}>Completed</Text>
         </View>
+
         <View style={styles.statDivider} />
+
         <View style={styles.statItem}>
-          <ThemedText style={styles.statNumber}>{stats.today}</ThemedText>
-          <ThemedText type="caption">Today</ThemedText>
+          <Text style={styles.statNumber}>{stats.today}</Text>
+          <Text style={styles.statLabel}>Today</Text>
         </View>
       </View>
-    </ThemedView>
+    </View>
   );
 
- const renderFilters = () => (
-   <ScrollView
-     horizontal
-     showsHorizontalScrollIndicator={false}
-     style={styles.filtersScrollView}
-   >
-     <View style={styles.filtersContainer}>
-       {filters.map((filter) => (
-         <TouchableOpacity
-           key={filter.id}
-           style={[
-             styles.filterButton,
-             filter.id === activeFilter && styles.activeFilterButton,
-           ]}
-           onPress={() => setActiveFilter(filter.id)}
-         >
-           <ThemedText
-             style={[
-               styles.filterText,
-               filter.id === activeFilter && styles.activeFilterText,
-             ]}
-           >
-             {filter.label}
-           </ThemedText>
-           <ThemedText
-             style={[
-               styles.filterCount,
-               filter.id === activeFilter && styles.activeFilterCount,
-             ]}
-           >
-             {filter.count}
-           </ThemedText>
-         </TouchableOpacity>
-       ))}
-     </View>
-   </ScrollView>
- );
+  const renderFilters = () => (
+    <View style={styles.filtersWrapper}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filtersScrollView}
+        contentContainerStyle={styles.filtersScrollContent}
+      >
+        <View style={styles.filtersContainer}>
+          {filters.map((filter) => (
+            <TouchableOpacity
+              key={filter.id}
+              style={[
+                styles.filterButton,
+                filter.id === activeFilter && styles.activeFilterButton,
+              ]}
+              onPress={() => setActiveFilter(filter.id)}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  filter.id === activeFilter && styles.activeFilterText,
+                ]}
+              >
+                {filter.label}
+              </Text>
+              <Text
+                style={[
+                  styles.filterCount,
+                  filter.id === activeFilter && styles.activeFilterCount,
+                ]}
+              >
+                {filter.count}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
 
-
-  // Existing functions remain unchanged
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string): string => {
     switch (status) {
       case "completed":
         return Colors.light.success;
       case "pending":
         return Colors.light.warning;
+      case "cancelled":
+        return Colors.light.error;
       default:
         return Colors.light.textGray[300];
     }
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = (priority: string): string => {
     switch (priority) {
       case "high":
-        return Colors.light.pink[100];
+        return Colors.light.error;
       case "medium":
-        return Colors.light.orange[100];
+        return Colors.light.warning;
       case "low":
-        return Colors.light.mint[100];
+        return Colors.light.success;
       default:
         return Colors.light.textGray[300];
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       weekday: "short",
@@ -189,7 +236,7 @@ export default function AppointmentsScreen() {
     require("@/assets/images/student-pp/girl5.jpg"),
   ];
 
-  const getProfileImage = (student) => {
+  const getProfileImage = (student: Student) => {
     switch (student.id) {
       case 101:
         return boyImages[0];
@@ -216,29 +263,29 @@ export default function AppointmentsScreen() {
     }
   };
 
-  const renderAppointmentCard = (appointment) => {
+  const renderAppointmentCard = (appointment: Appointment) => {
     const profileImage = getProfileImage(appointment.student);
-  
+
     return (
-      <Pressable 
-        key={appointment.id} 
-        onPress={() => router.push({
-          pathname: "/appointment-detail",
-          params: { appointmentId: appointment.id }
-        })}
+      <Pressable
+        key={appointment.id}
+        onPress={() =>
+          router.push({
+            pathname: "/appointment-detail",
+            params: { appointmentId: appointment.id },
+          })
+        }
       >
-        <ThemedView variant="elevated" style={styles.card}>
+        <View style={styles.card}>
           <View style={styles.cardContent}>
             <View style={styles.header}>
               <View style={styles.nameAndStatus}>
                 <Image source={profileImage} style={styles.profileImage} />
                 <View style={styles.nameTypeContainer}>
-                  <ThemedText type="subtitle" style={styles.studentName}>
+                  <Text style={styles.studentName}>
                     {appointment.student.name}
-                  </ThemedText>
-                  <ThemedText style={styles.appointmentType}>
-                    {appointment.type}
-                  </ThemedText>
+                  </Text>
+                  <Text style={styles.appointmentType}>{appointment.type}</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.moreButton}>
@@ -249,9 +296,9 @@ export default function AppointmentsScreen() {
                 />
               </TouchableOpacity>
             </View>
-  
+
             <View style={styles.statusRow}>
-              <ThemedText
+              <Text
                 style={[
                   styles.statusText,
                   { color: getStatusColor(appointment.status) },
@@ -259,14 +306,14 @@ export default function AppointmentsScreen() {
               >
                 {appointment.status.charAt(0).toUpperCase() +
                   appointment.status.slice(1)}
-              </ThemedText>
-              <ThemedText style={styles.priorityText}>
+              </Text>
+              <Text style={styles.priorityText}>
                 {appointment.priority.toUpperCase()} Priority
-              </ThemedText>
+              </Text>
             </View>
-  
+
             <View style={styles.divider} />
-  
+
             <View style={styles.infoContainer}>
               <View style={styles.infoRow}>
                 <View style={styles.iconLabel}>
@@ -275,17 +322,15 @@ export default function AppointmentsScreen() {
                     size={16}
                     color={Colors.light.textGray[300]}
                   />
-                  <ThemedText style={[styles.label, { marginLeft: 8 }]}>
-                    Time
-                  </ThemedText>
+                  <Text style={[styles.label, { marginLeft: 8 }]}>Time</Text>
                 </View>
-                <ThemedText style={styles.value}>
+                <Text style={styles.value}>
                   {`${formatDate(appointment.time.date)} at ${
                     appointment.time.time
                   }`}
-                </ThemedText>
+                </Text>
               </View>
-  
+
               <View style={styles.infoRow}>
                 <View style={styles.iconLabel}>
                   <Feather
@@ -293,56 +338,39 @@ export default function AppointmentsScreen() {
                     size={16}
                     color={Colors.light.textGray[300]}
                   />
-                  <ThemedText style={[styles.label, { marginLeft: 8 }]}>
+                  <Text style={[styles.label, { marginLeft: 8 }]}>
                     Location
-                  </ThemedText>
+                  </Text>
                 </View>
-                <ThemedText style={styles.value}>
-                  {appointment.time.location}
-                </ThemedText>
+                <Text style={styles.value}>{appointment.time.location}</Text>
               </View>
-  
+
               <View style={styles.infoRow}>
                 <View style={styles.iconLabel}>
                   <Feather
-                    name="user"
+                    name="message-square"
                     size={16}
                     color={Colors.light.textGray[300]}
                   />
-                  <ThemedText style={[styles.label, { marginLeft: 8 }]}>
-                    Counselor
-                  </ThemedText>
+                  <Text style={[styles.label, { marginLeft: 8 }]}>Notes</Text>
                 </View>
-                <ThemedText style={styles.value}>
-                  {appointment.counselor.name}
-                </ThemedText>
+                <Text style={styles.value} numberOfLines={2}>
+                  {appointment.notes.length > 0
+                    ? appointment.notes.join("\n")
+                    : "No notes available"}
+                </Text>
               </View>
             </View>
-  
-            <View style={styles.cardActions}>
-              <TouchableOpacity style={styles.acceptButton}>
-                <ThemedText style={styles.actionButtonText}>Accept</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.declineButton}>
-                <ThemedText style={styles.declineButtonText}>Decline</ThemedText>
-              </TouchableOpacity>
-            </View>
           </View>
-        </ThemedView>
+        </View>
       </Pressable>
     );
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{
-        light: Colors.light.green[200],
-        dark: "#1D3D47",
-      }}
-      headerImage={renderHeader()}
-    >
+    <SafeAreaContext style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
-        <ThemedView variant="elevated" style={styles.searchContainer}>
+        <View style={styles.searchContainer}>
           <Feather name="search" size={20} color={Colors.light.textGray[300]} />
           <TextInput
             style={styles.searchInput}
@@ -351,37 +379,53 @@ export default function AppointmentsScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-        </ThemedView>
+        </View>
 
         {renderStatsCard()}
         {renderFilters()}
 
-        <View style={styles.listContainer}>
-          {filteredAppointments.length > 0 ? (
-            filteredAppointments.map(renderAppointmentCard)
-          ) : (
-            <View style={styles.emptyStateContainer}>
-              <ThemedText style={styles.emptyStateText}>
-                No appointments found.
-              </ThemedText>
-            </View>
-          )}
-        </View>
+        <ScrollView
+          style={styles.appointmentsScrollView}
+          contentContainerStyle={styles.appointmentsContentContainer}
+        >
+          <View style={styles.listContainer}>
+            {filteredAppointments.length > 0 ? (
+              filteredAppointments.map(renderAppointmentCard)
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <Text style={styles.emptyStateText}>
+                  No appointments found.
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
       </View>
-    </ParallaxScrollView>
+    </SafeAreaContext>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+    paddingTop: Platform.OS === "android" ? 8 : 0,
+  },
+  scrollView: {
     flex: 1,
     backgroundColor: Colors.light.background,
   },
+  container: {
+    flex: 1,
+    padding: 16,
+    paddingTop: 20,
+    backgroundColor: Colors.light.background,
+  },
   headerContent: {
-    height: 180,
+    flex: 1,
     justifyContent: "flex-end",
     padding: 20,
-    paddingBottom: 30,
+    alignItems: "flex-start",
   },
   headerInner: {
     flexDirection: "row",
@@ -392,15 +436,16 @@ const styles = StyleSheet.create({
   logo: {
     width: 150,
     height: 40,
+    marginBottom: 20,
     tintColor: Colors.light.background,
   },
   createButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.green[100],
+    backgroundColor: Colors.light.green[200],
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 12,
     gap: 8,
   },
   createButtonText: {
@@ -416,16 +461,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
-    marginHorizontal: 10,
-    marginTop: 0,
     marginBottom: 16,
     borderRadius: 12,
     backgroundColor: Colors.light.background,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "20",
   },
   searchInput: {
     flex: 1,
@@ -434,10 +474,12 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[100],
   },
   statsCard: {
-    marginHorizontal: 10,
     marginBottom: 16,
     padding: 16,
     borderRadius: 12,
+    backgroundColor: Colors.light.background,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "20",
   },
   statsRow: {
     flexDirection: "row",
@@ -448,7 +490,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statNumber: {
-    color: Colors.light.green[100],
+    color: Colors.light.green[200],
     fontSize: 20,
     fontWeight: "600",
     marginBottom: 4,
@@ -456,15 +498,19 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: Colors.light.textGray[500],
-    opacity: 0.2,
+    backgroundColor: Colors.light.textGray[500] + "20",
+  },
+  filtersWrapper: {
+    marginBottom: 16,
   },
   filtersScrollView: {
-    marginBottom: 16,
+    flexGrow: 0,
+  },
+  filtersScrollContent: {
+    paddingRight: 8,
   },
   filtersContainer: {
     flexDirection: "row",
-    paddingHorizontal: 10,
     paddingVertical: 4,
     gap: 12,
   },
@@ -496,38 +542,36 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.light.textGray[300],
   },
+  activeFilterCount: {
+    color: Colors.light.green[200],
+  },
   emptyStateContainer: {
-    // Stretches to fill remaining space, so we can center content
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 16, // or 10, depending on your preference
+    paddingHorizontal: 16,
   },
   emptyStateText: {
     fontSize: 16,
     color: Colors.light.textGray[300],
-    textAlign: "center", // optional
-    height: 400, // optional
-    paddingTop: -200, // optional
-    
-  },
-
-  activeFilterCount: {
-    color: Colors.light.green[200],
+    textAlign: "center",
+    height: 400,
+    paddingTop: -200,
   },
   listContainer: {
-    gap: 0,
+    gap: 12,
   },
   card: {
-    marginHorizontal: 10,
-    marginBottom: 16,
+    marginBottom: 12,
     borderRadius: 12,
     backgroundColor: Colors.light.background,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "20",
+    shadowColor: Colors.light.textGray[300],
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   cardContent: {
     padding: 16,
@@ -549,7 +593,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 24,
     marginRight: 12,
   },
   studentName: {
@@ -568,13 +612,11 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: 12,
   },
   statusText: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.green[200],
   },
   priorityText: {
     fontSize: 13,
@@ -582,11 +624,11 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.light.textGray[300] + "20",
-    marginVertical: 12,
+    backgroundColor: Colors.light.textGray[500] + "10",
+    marginBottom: 12,
   },
   infoContainer: {
-    gap: 12,
+    gap: 10,
   },
   infoRow: {
     flexDirection: "row",
@@ -599,31 +641,34 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "500",
-    color: Colors.light.textGray[400],
+    color: Colors.light.textGray[300],
   },
   value: {
     fontSize: 14,
-    fontWeight: "500",
     color: Colors.light.textGray[100],
+    fontWeight: "500",
+    flex: 1,
+    textAlign: "right",
   },
   cardActions: {
     flexDirection: "row",
-    gap: 8,
+    justifyContent: "space-between",
     marginTop: 16,
+    gap: 12,
   },
   acceptButton: {
     flex: 1,
     backgroundColor: Colors.light.green[200],
-    paddingVertical: 12,
     borderRadius: 8,
+    paddingVertical: 10,
     alignItems: "center",
   },
   declineButton: {
     flex: 1,
-    backgroundColor: Colors.light.textGray[500] + "10",
-    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "30",
     borderRadius: 8,
+    paddingVertical: 10,
     alignItems: "center",
   },
   actionButtonText: {
@@ -634,9 +679,15 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[300],
     fontWeight: "600",
   },
-  noAppointments: {
-    textAlign: "center",
-    marginTop: 20,
+  statLabel: {
+    fontSize: 14,
     color: Colors.light.textGray[300],
+  },
+  appointmentsScrollView: {
+    flex: 1,
+  },
+  appointmentsContentContainer: {
+    paddingTop: 4,
+    paddingBottom: 20,
   },
 });

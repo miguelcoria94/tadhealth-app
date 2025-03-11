@@ -28,8 +28,9 @@ export default function TabLayout() {
               width: 0,
               height: -2,
             },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
+            shadowOpacity: 0.06,
+            shadowRadius: 4,
+            backgroundColor: "white",
           },
           default: {
             height: 64,

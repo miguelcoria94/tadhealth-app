@@ -4,7 +4,7 @@ import {
   Platform,
   View,
   TouchableOpacity,
-  Pressable, // Add this import
+  Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -12,8 +12,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from 'expo-router'; 
-import { appointments } from "@/assets/dummyData/appointments"; 
+import { useRouter } from "expo-router";
+import { appointments } from "@/assets/dummyData/appointments";
 
 export default function HomeScreen() {
   const { signOut } = useAuth();
@@ -94,7 +94,7 @@ export default function HomeScreen() {
   return (
     <ParallaxScrollView
       headerBackgroundColor={{
-        light: Colors.light.green[200],
+        light: Colors.light.green[300],
         dark: "#1D3D47",
       }}
       headerImage={
@@ -111,7 +111,7 @@ export default function HomeScreen() {
             >
               <Feather
                 name="log-out"
-                size={24}
+                size={22}
                 color={Colors.light.background}
               />
             </TouchableOpacity>
@@ -124,26 +124,16 @@ export default function HomeScreen() {
     >
       {/* Crisis Alerts Section */}
       {counselorInfo.alerts.length > 0 && (
-        <ThemedView
-          variant="elevated"
-          style={[
-            styles.alertCard,
-            { backgroundColor: Colors.light.pink[400] },
-          ]}
-        >
+        <ThemedView style={[styles.alertCard]}>
           <View style={styles.alertHeader}>
-            <Feather
-              name="alert-circle"
-              size={24}
-              color={Colors.light.pink[100]}
-            />
+            <Feather name="alert-circle" size={22} color={Colors.light.error} />
             <ThemedText style={styles.alertTitle}>Crisis Alerts</ThemedText>
           </View>
           {counselorInfo.alerts.map((alert) => (
-            <View key={alert.id} style={styles.alertItem}>
+            <Pressable key={alert.id} style={styles.alertItem}>
               <ThemedText type="defaultSemiBold">{alert.student}</ThemedText>
               <ThemedText type="caption">{alert.time}</ThemedText>
-            </View>
+            </Pressable>
           ))}
         </ThemedView>
       )}
@@ -168,63 +158,124 @@ export default function HomeScreen() {
       </View>
 
       {/* Today's Schedule */}
-      <ThemedView variant="elevated" style={styles.sectionCard}>
-  <ThemedText type="subtitle">Today's Schedule</ThemedText>
-  {counselorInfo.todaysSessions.map((session, index) => (
-    <Pressable 
-      key={index} 
-      style={styles.sessionItem}
-      onPress={() => {
-        // In a real app, you would have appointment IDs here
-        // For demo purposes we're using a hardcoded ID from the appointments array
-        const appointmentId = appointments.find(a => 
-          a.student.name === session.student && 
-          a.type === session.type
-        )?.id || appointments[0].id;
-        
-        router.push({
-          pathname: "/appointment-detail",
-          params: { appointmentId }
-        });
-      }}
-    >
-      <ThemedText type="defaultSemiBold" style={styles.sessionTime}>
-        {session.time}
-      </ThemedText>
-      <View style={styles.sessionDetails}>
-        <ThemedText>{session.student}</ThemedText>
-        <ThemedText type="caption">{session.type}</ThemedText>
-      </View>
-    </Pressable>
-  ))}
-</ThemedView>
+      <ThemedView style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <ThemedText type="subtitle">Today's Schedule</ThemedText>
+          <TouchableOpacity
+            onPress={() => router.push("/appointments")}
+            style={styles.viewAllButton}
+          >
+            <ThemedText type="caption" style={styles.viewAllText}>
+              View All
+            </ThemedText>
+            <Feather
+              name="chevron-right"
+              size={16}
+              color={Colors.light.green[300]}
+            />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.scheduleList}>
+          {counselorInfo.todaysSessions.map((session, index) => (
+            <Pressable
+              key={index}
+              style={[
+                styles.sessionItem,
+                index === counselorInfo.todaysSessions.length - 1 &&
+                  styles.lastItem,
+              ]}
+              onPress={() => {
+                // In a real app, you would have appointment IDs here
+                const appointmentId =
+                  appointments.find(
+                    (a) =>
+                      a.student.name === session.student &&
+                      a.type === session.type
+                  )?.id || appointments[0].id;
+
+                router.push({
+                  pathname: "/appointment-detail",
+                  params: { appointmentId },
+                });
+              }}
+            >
+              <View style={styles.timeContainer}>
+                <ThemedText type="defaultSemiBold" style={styles.sessionTime}>
+                  {session.time}
+                </ThemedText>
+                <View style={styles.timeDot} />
+              </View>
+              <View style={styles.sessionDetails}>
+                <ThemedText type="defaultSemiBold" style={styles.studentName}>
+                  {session.student}
+                </ThemedText>
+                <ThemedText type="caption" style={styles.sessionType}>
+                  {session.type}
+                </ThemedText>
+              </View>
+              <Feather
+                name="chevron-right"
+                size={18}
+                color={Colors.light.textGray[300]}
+                style={styles.chevron}
+              />
+            </Pressable>
+          ))}
+        </View>
+      </ThemedView>
 
       {/* Notifications */}
-      <ThemedView variant="elevated" style={styles.sectionCard}>
-        <ThemedText type="subtitle">Recent Notifications</ThemedText>
-        {counselorInfo.notifications.map((notification) => (
-          <View key={notification.id} style={styles.notificationItem}>
-            <ThemedText>{notification.message}</ThemedText>
-            <ThemedText type="caption">{notification.time}</ThemedText>
-          </View>
+      <ThemedView style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <ThemedText type="subtitle">Recent Notifications</ThemedText>
+        </View>
+        {counselorInfo.notifications.map((notification, index) => (
+          <Pressable
+            key={notification.id}
+            style={[
+              styles.notificationItem,
+              index === counselorInfo.notifications.length - 1 &&
+                styles.lastItem,
+            ]}
+          >
+            <View style={styles.notificationIcon}>
+              <Feather name="bell" size={16} color={Colors.light.green[300]} />
+            </View>
+            <View style={styles.notificationContent}>
+              <ThemedText>{notification.message}</ThemedText>
+              <ThemedText type="caption">{notification.time}</ThemedText>
+            </View>
+          </Pressable>
         ))}
       </ThemedView>
 
       {/* Billing Summary */}
-      <ThemedView variant="elevated" style={styles.sectionCard}>
-        <ThemedText type="subtitle">Billing Summary</ThemedText>
+      <ThemedView style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <ThemedText type="subtitle">Billing Summary</ThemedText>
+        </View>
         <View style={styles.billingGrid}>
           <View style={styles.billingItem}>
-            <ThemedText type="label">Pending Reports</ThemedText>
-            <ThemedText type="defaultSemiBold">
-              {counselorInfo.billing.pendingReports}
-            </ThemedText>
+            <Feather
+              name="file-text"
+              size={20}
+              color={Colors.light.green[300]}
+            />
+            <View style={styles.billingContent}>
+              <ThemedText type="defaultSemiBold">
+                {counselorInfo.billing.pendingReports}
+              </ThemedText>
+              <ThemedText type="caption">Pending Reports</ThemedText>
+            </View>
           </View>
           <View style={styles.billingItem}>
-            <ThemedText type="label">Unbilled Sessions</ThemedText>
-            <ThemedText type="defaultSemiBold">
-              {counselorInfo.billing.unbilledSessions}
-            </ThemedText>
+            <Feather name="clock" size={20} color={Colors.light.green[300]} />
+            <View style={styles.billingContent}>
+              <ThemedText type="defaultSemiBold">
+                {counselorInfo.billing.unbilledSessions}
+              </ThemedText>
+              <ThemedText type="caption">Unbilled Sessions</ThemedText>
+            </View>
           </View>
         </View>
       </ThemedView>
@@ -237,6 +288,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     padding: 20,
+    paddingBottom: 24,
     alignItems: "flex-start",
   },
   headerTop: {
@@ -253,13 +305,14 @@ const styles = StyleSheet.create({
     tintColor: Colors.light.background,
   },
   logoutButton: {
-    padding: 8,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 20,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   welcomeText: {
     color: Colors.light.background,
-    marginBottom: 20,
+    marginBottom: 8,
+    fontSize: 28,
   },
   metricsContainer: {
     flexDirection: "row",
@@ -269,21 +322,46 @@ const styles = StyleSheet.create({
   metricCard: {
     flex: 1,
     alignItems: "center",
-    padding: 12,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: Colors.light.background,
+    shadowColor: Colors.light.textGray[400],
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "25",
   },
   metricTitle: {
-    marginBottom: 4,
+    marginBottom: 8,
+    fontSize: 14,
+    color: Colors.light.textGray[300],
   },
   metricValue: {
-    fontSize: 24,
-    marginBottom: 2,
+    fontSize: 26,
+    fontWeight: "600",
+    color: Colors.light.green[300],
+    marginBottom: 4,
   },
   metricSubtitle: {
     color: Colors.light.textGray[300],
+    fontSize: 12,
   },
   alertCard: {
     marginBottom: 16,
     padding: 16,
+    borderRadius: 12,
+    backgroundColor: Colors.light.background,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.light.error,
+    shadowColor: Colors.light.textGray[400],
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "25",
   },
   alertHeader: {
     flexDirection: "row",
@@ -294,46 +372,122 @@ const styles = StyleSheet.create({
   alertTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.light.pink[100],
+    color: Colors.light.error,
   },
   alertItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.pink[300],
+    borderBottomColor: Colors.light.textGray[500] + "20",
   },
   sectionCard: {
     marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: Colors.light.background,
+    shadowColor: Colors.light.textGray[400],
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "25",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  viewAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  viewAllText: {
+    color: Colors.light.green[300],
+    marginRight: 4,
+  },
+  scheduleList: {
+    marginTop: 8,
   },
   sessionItem: {
     flexDirection: "row",
-    paddingVertical: 12,
+    alignItems: "center",
+    paddingVertical: 16,
+    marginVertical: 2,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.textGray[500] + "20",
+    borderBottomColor: Colors.light.textGray[500] + "10",
+  },
+  lastItem: {
+    borderBottomWidth: 0,
+    paddingBottom: 8,
+  },
+  timeContainer: {
+    width: 100,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  timeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.light.green[300],
+    marginLeft: 8,
   },
   sessionTime: {
-    width: 100,
-    color: Colors.light.green[100],
+    color: Colors.light.green[300],
+    fontSize: 16,
   },
   sessionDetails: {
     flex: 1,
+    marginLeft: 16,
+  },
+  studentName: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  sessionType: {
+    fontSize: 13,
+  },
+  chevron: {
+    marginLeft: 8,
   },
   notificationItem: {
+    flexDirection: "row",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.textGray[500] + "20",
+    borderBottomColor: Colors.light.textGray[500] + "10",
+  },
+  notificationIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.light.green[300] + "15",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  notificationContent: {
+    flex: 1,
   },
   billingGrid: {
     flexDirection: "row",
     gap: 16,
-    marginTop: 12,
+    marginTop: 8,
   },
   billingItem: {
     flex: 1,
-    padding: 12,
-    backgroundColor: Colors.light.textGray[500] + "10",
-    borderRadius: 8,
+    flexDirection: "row",
+    padding: 16,
+    backgroundColor: Colors.light.textGray[500] + "08",
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "25",
+  },
+  billingContent: {
+    marginLeft: 12,
   },
 });
