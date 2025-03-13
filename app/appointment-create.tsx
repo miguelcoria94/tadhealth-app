@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -6,6 +6,11 @@ import {
   TextInput,
   Platform,
   Alert,
+  Modal,
+  SafeAreaView,
+  Dimensions,
+  Animated,
+  Easing,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
@@ -17,6 +22,80 @@ import { Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/AuthContext";
 import { forms } from "@/assets/dummyData/appointments";
+
+// Custom Confetti Component
+interface ConfettiProps {
+  visible: boolean;
+}
+
+const Confetti: React.FC<ConfettiProps> = ({ visible }) => {
+  const CONFETTI_COLORS = [
+    Colors.light.green[200], 
+    '#00c853', 
+    '#4caf50', 
+    '#ffeb3b', 
+    '#ffc107',
+    '#ff9800'
+  ];
+  
+  const { width, height } = Dimensions.get('window');
+  const confettiCount = 100;
+  const particles = Array(confettiCount).fill(0).map(() => {
+    const animatedValue = new Animated.Value(0);
+    return {
+      left: Math.random() * width,
+      size: Math.random() * 8 + 4,
+      rotate: Math.random() * 360,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      animatedValue
+    };
+  });
+
+  useEffect(() => {
+    if (visible) {
+      particles.forEach(particle => {
+        Animated.timing(particle.animatedValue, {
+          toValue: 1,
+          duration: Math.random() * 2000 + 1000,
+          easing: Easing.linear,
+          useNativeDriver: true
+        }).start();
+      });
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <View style={styles.confettiContainer}>
+      {particles.map((particle, index) => {
+        const translateY = particle.animatedValue.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-50, height]
+        });
+        
+        return (
+          <Animated.View
+            key={index}
+            style={[
+              styles.confettiPiece,
+              {
+                left: particle.left,
+                width: particle.size,
+                height: particle.size * 2,
+                backgroundColor: particle.color,
+                transform: [
+                  { translateY },
+                  { rotate: `${particle.rotate}deg` }
+                ]
+              }
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+};
 
 // Constants from your appointment data
 const COUNSELORS = [
@@ -108,10 +187,16 @@ export default function AppointmentCreateScreen() {
   const [isSessionComplete, setIsSessionComplete] = useState(false);
   const [selectedForm, setSelectedForm] = useState("");
   const [showFormDropdown, setShowFormDropdown] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [tempStartTime, setTempStartTime] = useState(new Date());
+  const [tempEndTime, setTempEndTime] = useState(new Date(Date.now() + 60 * 60 * 1000));
 
   // For development/testing purposes, you can toggle this to true to see post-session UI
   // In production, this would be determined by comparing session date/time with current time
   const [showPostSessionUI, setShowPostSessionUI] = useState(false);
+
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiRef = useRef(null);
 
   // Set default counselor based on logged-in user
   useEffect(() => {
@@ -218,11 +303,23 @@ export default function AppointmentCreateScreen() {
       // Save back to storage
       await AsyncStorage.setItem("appointments", JSON.stringify(appointments));
 
-      Alert.alert(
-        "Appointment Scheduled",
-        `Successfully scheduled a ${selectedType} appointment with ${selectedStudent}.`,
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      // Show confetti first
+      setShowConfetti(true);
+      
+      // Show success message after brief delay
+      setTimeout(() => {
+        Alert.alert(
+          "🎉 Appointment Scheduled!",
+          `Successfully scheduled a ${selectedType} appointment with ${selectedStudent}.`,
+          [{ 
+            text: "Great!", 
+            onPress: () => {
+              setShowConfetti(false);
+              router.back();
+            } 
+          }]
+        );
+      }, 500);
     } catch (error) {
       console.error("Error saving appointment:", error);
       Alert.alert("Failed to save appointment");
@@ -259,7 +356,7 @@ export default function AppointmentCreateScreen() {
     router.back();
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
@@ -268,7 +365,7 @@ export default function AppointmentCreateScreen() {
     });
   };
 
-  const formatTime = (time: Date) => {
+  const formatTime = (time: Date): string => {
     return time.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -276,8 +373,64 @@ export default function AppointmentCreateScreen() {
     });
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (selectedDate) {
+      if (Platform.OS === 'android') {
+        setShowDatePicker(false);
+        setDate(selectedDate);
+      } else {
+        setTempDate(selectedDate);
+      }
+    } else if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+  };
+
+  const handleStartTimeChange = (event: any, selectedTime?: Date) => {
+    if (selectedTime) {
+      if (Platform.OS === 'android') {
+        setShowStartTimePicker(false);
+        setStartTime(selectedTime);
+      } else {
+        setTempStartTime(selectedTime);
+      }
+    } else if (Platform.OS === 'android') {
+      setShowStartTimePicker(false);
+    }
+  };
+
+  const handleEndTimeChange = (event: any, selectedTime?: Date) => {
+    if (selectedTime) {
+      if (Platform.OS === 'android') {
+        setShowEndTimePicker(false);
+        setEndTime(selectedTime);
+      } else {
+        setTempEndTime(selectedTime);
+      }
+    } else if (Platform.OS === 'android') {
+      setShowEndTimePicker(false);
+    }
+  };
+
+  const confirmDateSelection = () => {
+    setDate(tempDate);
+    setShowDatePicker(false);
+  };
+
+  const confirmStartTimeSelection = () => {
+    setStartTime(tempStartTime);
+    setShowStartTimePicker(false);
+  };
+
+  const confirmEndTimeSelection = () => {
+    setEndTime(tempEndTime);
+    setShowEndTimePicker(false);
+  };
+
   return (
     <View style={styles.container}>
+      <Confetti visible={showConfetti} />
+      
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
@@ -470,7 +623,6 @@ export default function AppointmentCreateScreen() {
               Date & Time
             </ThemedText>
 
-            {/* Date & Time Section */}
             <View style={styles.dateTimeContainer}>
               {/* Date Selection */}
               <Pressable
@@ -539,34 +691,151 @@ export default function AppointmentCreateScreen() {
                 </Pressable>
               </View>
             </View>
-
-            {/* Date/Time Pickers */}
-            {(showDatePicker || showStartTimePicker || showEndTimePicker) && (
-              <DateTimePicker
-                value={
-                  showDatePicker
-                    ? date
-                    : showStartTimePicker
-                    ? startTime
-                    : endTime
-                }
-                mode={showDatePicker ? "date" : "time"}
-                is24Hour={false}
-                onChange={(event, selectedDate) => {
-                  if (showDatePicker) {
-                    setShowDatePicker(false);
-                    if (selectedDate) setDate(selectedDate);
-                  } else if (showStartTimePicker) {
-                    setShowStartTimePicker(false);
-                    if (selectedDate) setStartTime(selectedDate);
-                  } else {
-                    setShowEndTimePicker(false);
-                    if (selectedDate) setEndTime(selectedDate);
-                  }
-                }}
-              />
-            )}
           </ThemedView>
+
+          {/* Date/Time Pickers - placed OUTSIDE ThemedView */}
+          {showDatePicker && Platform.OS === 'android' && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+
+          {showDatePicker && Platform.OS === 'ios' && (
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={showDatePicker}
+              onRequestClose={() => setShowDatePicker(false)}
+            >
+              <SafeAreaView style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <ThemedText style={styles.modalTitle}>Select Date</ThemedText>
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display="inline"
+                    onChange={handleDateChange}
+                    minimumDate={new Date()}
+                    style={{height: 350, width: '100%'}}
+                    themeVariant="light"
+                    accentColor={Colors.light.green[200]}
+                    textColor={Colors.light.textGray[100]}
+                  />
+                  <View style={styles.buttonContainer}>
+                    <Pressable
+                      style={[styles.button, styles.buttonCancel]}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <ThemedText style={styles.buttonText}>Cancel</ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.button, styles.buttonConfirm]}
+                      onPress={confirmDateSelection}
+                    >
+                      <ThemedText style={styles.buttonText}>Confirm</ThemedText>
+                    </Pressable>
+                  </View>
+                </View>
+              </SafeAreaView>
+            </Modal>
+          )}
+
+          {showStartTimePicker && Platform.OS === 'android' && (
+            <DateTimePicker
+              value={startTime}
+              mode="time"
+              onChange={handleStartTimeChange}
+            />
+          )}
+
+          {showStartTimePicker && Platform.OS === 'ios' && (
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={showStartTimePicker}
+              onRequestClose={() => setShowStartTimePicker(false)}
+            >
+              <SafeAreaView style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <ThemedText style={styles.modalTitle}>Select Start Time</ThemedText>
+                  <DateTimePicker
+                    value={tempStartTime}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleStartTimeChange}
+                    style={{height: 200, width: '100%'}}
+                    themeVariant="light"
+                    accentColor={Colors.light.green[200]}
+                    textColor={Colors.light.textGray[100]}
+                  />
+                  <View style={styles.buttonContainer}>
+                    <Pressable
+                      style={[styles.button, styles.buttonCancel]}
+                      onPress={() => setShowStartTimePicker(false)}
+                    >
+                      <ThemedText style={styles.buttonText}>Cancel</ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.button, styles.buttonConfirm]}
+                      onPress={confirmStartTimeSelection}
+                    >
+                      <ThemedText style={styles.buttonText}>Confirm</ThemedText>
+                    </Pressable>
+                  </View>
+                </View>
+              </SafeAreaView>
+            </Modal>
+          )}
+
+          {showEndTimePicker && Platform.OS === 'android' && (
+            <DateTimePicker
+              value={endTime}
+              mode="time"
+              onChange={handleEndTimeChange}
+            />
+          )}
+
+          {showEndTimePicker && Platform.OS === 'ios' && (
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={showEndTimePicker}
+              onRequestClose={() => setShowEndTimePicker(false)}
+            >
+              <SafeAreaView style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <ThemedText style={styles.modalTitle}>Select End Time</ThemedText>
+                  <DateTimePicker
+                    value={tempEndTime}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleEndTimeChange}
+                    style={{height: 200, width: '100%'}}
+                    themeVariant="light"
+                    accentColor={Colors.light.green[200]}
+                    textColor={Colors.light.textGray[100]}
+                  />
+                  <View style={styles.buttonContainer}>
+                    <Pressable
+                      style={[styles.button, styles.buttonCancel]}
+                      onPress={() => setShowEndTimePicker(false)}
+                    >
+                      <ThemedText style={styles.buttonText}>Cancel</ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.button, styles.buttonConfirm]}
+                      onPress={confirmEndTimeSelection}
+                    >
+                      <ThemedText style={styles.buttonText}>Confirm</ThemedText>
+                    </Pressable>
+                  </View>
+                </View>
+              </SafeAreaView>
+            </Modal>
+          )}
 
           {/* Form Selection */}
           <ThemedView style={styles.section}>
@@ -952,5 +1221,61 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontSize: 16,
     fontWeight: "600",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: Colors.light.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -3,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  button: {
+    borderRadius: 12,
+    padding: 12,
+    flex: 1,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  buttonCancel: {
+    backgroundColor: Colors.light.textGray[500] + "20",
+  },
+  buttonConfirm: {
+    backgroundColor: Colors.light.green[200],
+  },
+  confettiContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+    pointerEvents: 'none',
+  },
+  confettiPiece: {
+    position: 'absolute',
+    top: 0,
   },
 });
