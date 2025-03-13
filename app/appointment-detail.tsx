@@ -204,7 +204,7 @@ export default function AppointmentDetailScreen() {
   const renderActivityTab = () => (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.tabContent}
+      style={{flex: 1}}
     >
       {/* Add Comment */}
       <ThemedView variant="elevated" style={styles.addCommentCard}>
@@ -261,7 +261,7 @@ export default function AppointmentDetailScreen() {
   );
 
   const renderFormsTab = () => (
-    <View style={styles.tabContent}>
+    <>
       {relevantForms.length > 0 ? (
         relevantForms.map((form, index) => (
           <ThemedView key={index} variant="elevated" style={styles.formCard}>
@@ -304,11 +304,11 @@ export default function AppointmentDetailScreen() {
           </Pressable>
         </ThemedView>
       )}
-    </View>
+    </>
   );
 
   const renderReferralsTab = () => (
-    <View style={styles.tabContent}>
+    <>
       {relevantReferrals.length > 0 ? (
         relevantReferrals.map((referral, index) => (
           <ThemedView key={index} variant="elevated" style={styles.referralCard}>
@@ -347,11 +347,11 @@ export default function AppointmentDetailScreen() {
           </Pressable>
         </ThemedView>
       )}
-    </View>
+    </>
   );
 
   const renderReviewTab = () => (
-    <View style={styles.tabContent}>
+    <>
     <ThemedView variant="elevated" style={styles.reviewCard}>
       <ThemedText type="subtitle">Attendance</ThemedText>
       <Pressable 
@@ -458,11 +458,11 @@ export default function AppointmentDetailScreen() {
           </>
         )}
       </Pressable>
-    </View>
+    </>
   );
 
   const renderBillingTab = () => (
-    <View style={styles.tabContent}>
+    <>
       {appointment.billingStatus ? (
         <ThemedView variant="elevated" style={styles.billingCard}>
           <View style={styles.billingHeader}>
@@ -510,7 +510,7 @@ export default function AppointmentDetailScreen() {
           </Pressable>
         </ThemedView>
       )}
-    </View>
+    </>
   );
 
   const renderDetailsTab = () => (
@@ -774,10 +774,17 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
   label: {
     fontSize: 14,
@@ -1049,6 +1056,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    gap: 16,
   },
   cardTitle: {
     marginBottom: 12,
@@ -1105,20 +1113,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  referralHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    flexWrap: 'wrap',
-  },
-  billingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    flexWrap: 'wrap',
-  },
   headerProfileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1139,7 +1133,6 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     textAlign: "center",
   },
-  // Add to the styles object
   input: {
     backgroundColor: Colors.light.textGray[500] + '10',
     borderRadius: 8,
