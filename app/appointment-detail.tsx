@@ -63,6 +63,8 @@ interface Appointment {
   billingSubmissionDate?: string;
 }
 
+
+
 const TABS = [
   { id: 'details', label: 'Details', icon: 'info' },
   { id: 'activity', label: 'Activity', icon: 'message-square' },
@@ -107,6 +109,7 @@ export default function AppointmentDetailScreen() {
   const [sessionPurpose, setSessionPurpose] = useState('Ongoing');
   const [showSessionPurposeDropdown, setShowSessionPurposeDropdown] = useState(false);
   const [progressNote, setProgressNote] = useState('');
+  const [noteTitle, setNoteTitle] = useState('');
 
   // Convert to a number
   const idNumber = appointmentId ? parseInt(appointmentId.toString(), 10) : NaN;
@@ -156,7 +159,7 @@ export default function AppointmentDetailScreen() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      console.log('Saving review with title:', noteTitle);
       Alert.alert(
         'Success', 
         'Review notes have been saved successfully.',
@@ -349,20 +352,20 @@ export default function AppointmentDetailScreen() {
 
   const renderReviewTab = () => (
     <View style={styles.tabContent}>
-      <ThemedView variant="elevated" style={styles.reviewCard}>
-        <ThemedText type="subtitle">Attendance</ThemedText>
-        <Pressable 
-          style={styles.dropdownButton}
-          onPress={() => setShowAttendanceDropdown(!showAttendanceDropdown)}
-        >
-          <ThemedText style={styles.dropdownButtonText}>
-            {attendance.charAt(0).toUpperCase() + attendance.slice(1)}
-          </ThemedText>
-          <Feather 
-            name={showAttendanceDropdown ? 'chevron-up' : 'chevron-down'} 
-            size={20} 
-            color={Colors.light.textGray[300]} 
-          />
+    <ThemedView variant="elevated" style={styles.reviewCard}>
+      <ThemedText type="subtitle">Attendance</ThemedText>
+      <Pressable 
+        style={styles.dropdownButton}
+        onPress={() => setShowAttendanceDropdown(!showAttendanceDropdown)}
+      >
+        <ThemedText style={styles.dropdownButtonText}>
+          {attendance.charAt(0).toUpperCase() + attendance.slice(1)}
+        </ThemedText>
+        <Feather 
+          name={showAttendanceDropdown ? 'chevron-up' : 'chevron-down'} 
+          size={20} 
+          color={Colors.light.textGray[300]} 
+        />
         </Pressable>
         {showAttendanceDropdown && (
           <View style={styles.dropdownContent}>
@@ -393,10 +396,10 @@ export default function AppointmentDetailScreen() {
           <ThemedText style={styles.dropdownButtonText}>
             {sessionPurpose}
           </ThemedText>
-          <Feather 
+            <Feather 
             name={showSessionPurposeDropdown ? 'chevron-up' : 'chevron-down'} 
             size={20} 
-            color={Colors.light.textGray[300]} 
+            color={Colors.light.textGray[300]}  
           />
         </Pressable>
         {showSessionPurposeDropdown && (
@@ -416,6 +419,16 @@ export default function AppointmentDetailScreen() {
           </View>
         )}
       </ThemedView>
+      <ThemedView variant="elevated" style={styles.reviewCard}>
+      <ThemedText type="subtitle">Note Title</ThemedText>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter a title for this note..."
+        placeholderTextColor={Colors.light.textGray[300]}
+        value={noteTitle}
+        onChangeText={setNoteTitle}
+      />
+    </ThemedView>
 
       <ThemedView variant="elevated" style={styles.reviewCard}>
         <ThemedText type="subtitle">Progress Note</ThemedText>
@@ -1125,5 +1138,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: Colors.light.background,
     textAlign: "center",
+  },
+  // Add to the styles object
+  input: {
+    backgroundColor: Colors.light.textGray[500] + '10',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+    marginTop: 12,
   },
 });

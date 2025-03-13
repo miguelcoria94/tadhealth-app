@@ -16,6 +16,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/AuthContext";
+import { forms } from "@/assets/dummyData/appointments";
 
 // Constants from your appointment data
 const COUNSELORS = [
@@ -105,6 +106,8 @@ export default function AppointmentCreateScreen() {
   const [comments, setComments] = useState("");
   const [postSessionLog, setPostSessionLog] = useState("");
   const [isSessionComplete, setIsSessionComplete] = useState(false);
+  const [selectedForm, setSelectedForm] = useState("");
+  const [showFormDropdown, setShowFormDropdown] = useState(false);
 
   // For development/testing purposes, you can toggle this to true to see post-session UI
   // In production, this would be determined by comparing session date/time with current time
@@ -200,6 +203,7 @@ export default function AppointmentCreateScreen() {
           : [],
         postSessionLog: postSessionLog || "",
         isClaimReady: showPostSessionUI && postSessionLog ? true : false,
+        attachedForm: selectedForm || null,
       };
 
       // Get existing appointments
@@ -214,9 +218,11 @@ export default function AppointmentCreateScreen() {
       // Save back to storage
       await AsyncStorage.setItem("appointments", JSON.stringify(appointments));
 
-      Alert.alert("Success", "Appointment scheduled successfully", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      Alert.alert(
+        "Appointment Scheduled",
+        `Successfully scheduled a ${selectedType} appointment with ${selectedStudent}.`,
+        [{ text: "OK", onPress: () => router.back() }]
+      );
     } catch (error) {
       console.error("Error saving appointment:", error);
       Alert.alert("Failed to save appointment");
@@ -559,6 +565,44 @@ export default function AppointmentCreateScreen() {
                   }
                 }}
               />
+            )}
+          </ThemedView>
+
+          {/* Form Selection */}
+          <ThemedView style={styles.section}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Attach Form
+            </ThemedText>
+            <Pressable
+              style={styles.dropdownButton}
+              onPress={() => setShowFormDropdown(!showFormDropdown)}
+            >
+              <ThemedText style={styles.dropdownButtonText}>
+                {selectedForm || "Select a Form"}
+              </ThemedText>
+              <Feather
+                name={showFormDropdown ? "chevron-up" : "chevron-down"}
+                size={20}
+                color={Colors.light.textGray[300]}
+              />
+            </Pressable>
+            {showFormDropdown && (
+              <View style={styles.dropdownContent}>
+                {forms.map((form) => (
+                  <Pressable
+                    key={form.id}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setSelectedForm(form.name);
+                      setShowFormDropdown(false);
+                    }}
+                  >
+                    <ThemedText style={styles.dropdownItemText}>
+                      {form.name} ({form.type})
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
             )}
           </ThemedView>
 
