@@ -87,9 +87,12 @@ export default function ClaimsScreen() {
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
   const [themesText, setThemesText] = useState('');
   const [selectedHBIFocus, setSelectedHBIFocus] = useState<Set<string>>(new Set());
-  const [selectedTimeSpent, setSelectedTimeSpent] = useState<string>('');
+  const [selectedTimeSpent, setSelectedTimeSpent] = useState<string>('15 minutes');
   const [selectedAdditionalDetails, setSelectedAdditionalDetails] = useState<Set<string>>(new Set());
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  const [isCommunityHealthWorker, setIsCommunityHealthWorker] = useState<boolean | null>(null);
+  const [selectedTrainingFocus, setSelectedTrainingFocus] = useState<Set<string>>(new Set());
+  const [selectedCaseManagementType, setSelectedCaseManagementType] = useState<string>('');
 
   // Mock claims data (in reality, this would come from appointments)
   const claims = appointments.map((apt) => ({
@@ -199,6 +202,20 @@ export default function ClaimsScreen() {
       newSelection.add(detail);
     }
     setSelectedAdditionalDetails(newSelection);
+  };
+
+  const toggleTrainingFocus = (focus: string) => {
+    const newSelection = new Set(selectedTrainingFocus);
+    if (newSelection.has(focus)) {
+      newSelection.delete(focus);
+    } else {
+      newSelection.add(focus);
+    }
+    setSelectedTrainingFocus(newSelection);
+  };
+
+  const toggleCaseManagementType = (type: string) => {
+    setSelectedCaseManagementType(type);
   };
 
   const handleCheckEligibility = () => {
@@ -790,7 +807,7 @@ export default function ClaimsScreen() {
               </TouchableOpacity>
 
               {/* Conditional section for Health behavior intervention */}
-              {selectedServices.has('Health behavior intervention') && service.name === 'Health behavior intervention' && (
+              {selectedServices.has(service.name) && service.name === 'Health behavior intervention' && (
                 <View style={styles.conditionalSection}>
                   <ThemedText style={styles.conditionalTitle}>
                     What was the focus of this service? (select all that apply)
@@ -836,7 +853,7 @@ export default function ClaimsScreen() {
               )}
 
               {/* Conditional section for Preventative medicine */}
-              {selectedServices.has('Preventative medicine') && service.name === 'Preventative medicine' && (
+              {selectedServices.has(service.name) && service.name === 'Preventative medicine' && (
                 <View style={styles.conditionalSection}>
                   <ThemedText style={styles.conditionalTitle}>
                     Time spent on this service
@@ -848,7 +865,7 @@ export default function ClaimsScreen() {
                       onPress={() => setShowTimeDropdown(!showTimeDropdown)}
                     >
                       <ThemedText style={styles.dropdownText}>
-                        {selectedTimeSpent || 'Select time'}
+                        {selectedTimeSpent}
                       </ThemedText>
                       <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
                     </TouchableOpacity>
@@ -883,37 +900,340 @@ export default function ClaimsScreen() {
                     Additional details (select if applicable)
                   </ThemedText>
                   
-                  {additionalDetailOptions.map((detail) => (
-                    <TouchableOpacity
-                      key={detail}
-                      style={[
-                        styles.optionButton,
-                        selectedAdditionalDetails.has(detail) && styles.selectedOption
-                      ]}
-                      onPress={() => toggleAdditionalDetail(detail)}
-                    >
-                      <View style={styles.optionLeft}>
-                        <View style={[
-                          styles.checkbox,
-                          selectedAdditionalDetails.has(detail) && styles.checkedBox
-                        ]}>
-                          {selectedAdditionalDetails.has(detail) && (
-                            <Feather 
-                              name="check" 
-                              size={14} 
-                              color={Colors.light.background} 
-                            />
-                          )}
+                  <View>
+                    {additionalDetailOptions.map((detail) => (
+                      <TouchableOpacity
+                        key={detail}
+                        style={[
+                          styles.optionButton,
+                          selectedAdditionalDetails.has(detail) && styles.selectedOption
+                        ]}
+                        onPress={() => toggleAdditionalDetail(detail)}
+                      >
+                        <View style={styles.optionLeft}>
+                          <View style={[
+                            styles.checkbox,
+                            selectedAdditionalDetails.has(detail) && styles.checkedBox
+                          ]}>
+                            {selectedAdditionalDetails.has(detail) && (
+                              <Feather 
+                                name="check" 
+                                size={14} 
+                                color={Colors.light.background} 
+                              />
+                            )}
+                          </View>
+                          <ThemedText style={[
+                            styles.optionText,
+                            selectedAdditionalDetails.has(detail) && styles.selectedOptionText
+                          ]}>
+                            {detail}
+                          </ThemedText>
                         </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Conditional section for Training */}
+              {selectedServices.has(service.name) && service.name === 'Training' && (
+                <View style={styles.conditionalSection}>
+                  <ThemedText style={styles.conditionalTitle}>
+                    Are you a community health worker?
+                  </ThemedText>
+                  
+                  <View style={styles.radioContainer}>
+                    <TouchableOpacity
+                      style={styles.radioOption}
+                      onPress={() => setIsCommunityHealthWorker(true)}
+                    >
+                      <View style={[
+                        styles.radioButton,
+                        isCommunityHealthWorker === true && styles.radioButtonSelected
+                      ]}>
+                        {isCommunityHealthWorker === true && (
+                          <View style={styles.radioButtonInner} />
+                        )}
+                      </View>
+                      <ThemedText style={styles.radioText}>Yes</ThemedText>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={styles.radioOption}
+                      onPress={() => setIsCommunityHealthWorker(false)}
+                    >
+                      <View style={[
+                        styles.radioButton,
+                        isCommunityHealthWorker === false && styles.radioButtonSelected
+                      ]}>
+                        {isCommunityHealthWorker === false && (
+                          <View style={styles.radioButtonInner} />
+                        )}
+                      </View>
+                      <ThemedText style={styles.radioText}>No</ThemedText>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* If they select Yes for community health worker */}
+                  {isCommunityHealthWorker === true && (
+                    <View style={styles.nestedSection}>
+                      <ThemedText style={styles.conditionalTitle}>
+                        Time spent on this service
+                      </ThemedText>
+                      
+                      <View style={styles.dropdownContainer}>
+                        <TouchableOpacity
+                          style={styles.dropdown}
+                          onPress={() => setShowTimeDropdown(!showTimeDropdown)}
+                        >
+                          <ThemedText style={styles.dropdownText}>
+                            {selectedTimeSpent}
+                          </ThemedText>
+                          <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
+                        </TouchableOpacity>
+                        
+                        {showTimeDropdown && (
+                          <View style={styles.dropdownList}>
+                            {timeOptions.map((time) => (
+                              <TouchableOpacity
+                                key={time}
+                                style={[
+                                  styles.dropdownItem,
+                                  selectedTimeSpent === time && styles.selectedDropdownItem
+                                ]}
+                                onPress={() => handleTimeSelect(time)}
+                              >
+                                <ThemedText style={[
+                                  styles.dropdownItemText,
+                                  selectedTimeSpent === time && styles.selectedDropdownItemText
+                                ]}>
+                                  {time}
+                                </ThemedText>
+                                {selectedTimeSpent === time && (
+                                  <Feather name="check" size={16} color={Colors.light.green[200]} />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+
+                      <ThemedText style={[styles.conditionalTitle, { marginTop: 16 }]}>
+                        Additional details (select if applicable)
+                      </ThemedText>
+                      
+                      <View>
+                        {additionalDetailOptions.map((detail) => (
+                          <TouchableOpacity
+                            key={detail}
+                            style={[
+                              styles.optionButton,
+                              selectedAdditionalDetails.has(detail) && styles.selectedOption
+                            ]}
+                            onPress={() => toggleAdditionalDetail(detail)}
+                          >
+                            <View style={styles.optionLeft}>
+                              <View style={[
+                                styles.checkbox,
+                                selectedAdditionalDetails.has(detail) && styles.checkedBox
+                              ]}>
+                                {selectedAdditionalDetails.has(detail) && (
+                                  <Feather 
+                                    name="check" 
+                                    size={14} 
+                                    color={Colors.light.background} 
+                                  />
+                                )}
+                              </View>
+                              <ThemedText style={[
+                                styles.optionText,
+                                selectedAdditionalDetails.has(detail) && styles.selectedOptionText
+                              ]}>
+                                {detail}
+                              </ThemedText>
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* If they select No for community health worker */}
+                  {isCommunityHealthWorker === false && (
+                    <View style={styles.nestedSection}>
+                      <ThemedText style={styles.conditionalTitle}>
+                        What was the focus of this service? (select all that apply)
+                      </ThemedText>
+                      
+                      <TouchableOpacity
+                        style={[
+                          styles.optionButton,
+                          selectedTrainingFocus.has('General Skills Training and Development') && styles.selectedOption
+                        ]}
+                        onPress={() => toggleTrainingFocus('General Skills Training and Development')}
+                      >
+                        <View style={styles.optionLeft}>
+                          <View style={[
+                            styles.checkbox,
+                            selectedTrainingFocus.has('General Skills Training and Development') && styles.checkedBox
+                          ]}>
+                            {selectedTrainingFocus.has('General Skills Training and Development') && (
+                              <Feather 
+                                name="check" 
+                                size={14} 
+                                color={Colors.light.background} 
+                              />
+                            )}
+                          </View>
+                          <View style={styles.serviceTextContainer}>
+                            <ThemedText style={[
+                              styles.optionText,
+                              selectedTrainingFocus.has('General Skills Training and Development') && styles.selectedOptionText
+                            ]}>
+                              General Skills Training and Development
+                            </ThemedText>
+                            <ThemedText style={styles.serviceDescription}>
+                              Teaching practical skills and providing psychoeducation to help students manage challenges
+                            </ThemedText>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.optionButton,
+                          selectedTrainingFocus.has('Targeted Skills Training and Development') && styles.selectedOption
+                        ]}
+                        onPress={() => toggleTrainingFocus('Targeted Skills Training and Development')}
+                      >
+                        <View style={styles.optionLeft}>
+                          <View style={[
+                            styles.checkbox,
+                            selectedTrainingFocus.has('Targeted Skills Training and Development') && styles.checkedBox
+                          ]}>
+                            {selectedTrainingFocus.has('Targeted Skills Training and Development') && (
+                              <Feather 
+                                name="check" 
+                                size={14} 
+                                color={Colors.light.background} 
+                              />
+                            )}
+                          </View>
+                          <View style={styles.serviceTextContainer}>
+                            <ThemedText style={[
+                              styles.optionText,
+                              selectedTrainingFocus.has('Targeted Skills Training and Development') && styles.selectedOptionText
+                            ]}>
+                              Targeted Skills Training and Development
+                            </ThemedText>
+                            <ThemedText style={styles.serviceDescription}>
+                              Teaching specific skills to address particular challenges or conditions
+                            </ThemedText>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Conditional section for Case management */}
+              {selectedServices.has(service.name) && service.name === 'Case management' && (
+                <View style={styles.conditionalSection}>
+                  <ThemedText style={styles.conditionalTitle}>
+                    What type of case management service did you provide?
+                  </ThemedText>
+                  
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      selectedCaseManagementType === 'Care coordination' && styles.selectedOption
+                    ]}
+                    onPress={() => setSelectedCaseManagementType('Care coordination')}
+                  >
+                    <View style={styles.optionLeft}>
+                      <View style={[
+                        styles.radioButton,
+                        selectedCaseManagementType === 'Care coordination' && styles.radioButtonSelected
+                      ]}>
+                        {selectedCaseManagementType === 'Care coordination' && (
+                          <View style={styles.radioButtonInner} />
+                        )}
+                      </View>
+                      <View style={styles.serviceTextContainer}>
                         <ThemedText style={[
                           styles.optionText,
-                          selectedAdditionalDetails.has(detail) && styles.selectedOptionText
+                          selectedCaseManagementType === 'Care coordination' && styles.selectedOptionText
                         ]}>
-                          {detail}
+                          Care coordination
+                        </ThemedText>
+                        <ThemedText style={styles.serviceDescription}>
+                          Coordinating care between providers, making referrals, and ensuring continuity of care
                         </ThemedText>
                       </View>
-                    </TouchableOpacity>
-                  ))}
+                    </View>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      selectedCaseManagementType === 'Service planning' && styles.selectedOption
+                    ]}
+                    onPress={() => setSelectedCaseManagementType('Service planning')}
+                  >
+                    <View style={styles.optionLeft}>
+                      <View style={[
+                        styles.radioButton,
+                        selectedCaseManagementType === 'Service planning' && styles.radioButtonSelected
+                      ]}>
+                        {selectedCaseManagementType === 'Service planning' && (
+                          <View style={styles.radioButtonInner} />
+                        )}
+                      </View>
+                      <View style={styles.serviceTextContainer}>
+                        <ThemedText style={[
+                          styles.optionText,
+                          selectedCaseManagementType === 'Service planning' && styles.selectedOptionText
+                        ]}>
+                          Service planning
+                        </ThemedText>
+                        <ThemedText style={styles.serviceDescription}>
+                          Developing and implementing service plans to address student needs
+                        </ThemedText>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      selectedCaseManagementType === 'Monitoring and follow-up' && styles.selectedOption
+                    ]}
+                    onPress={() => setSelectedCaseManagementType('Monitoring and follow-up')}
+                  >
+                    <View style={styles.optionLeft}>
+                      <View style={[
+                        styles.radioButton,
+                        selectedCaseManagementType === 'Monitoring and follow-up' && styles.radioButtonSelected
+                      ]}>
+                        {selectedCaseManagementType === 'Monitoring and follow-up' && (
+                          <View style={styles.radioButtonInner} />
+                        )}
+                      </View>
+                      <View style={styles.serviceTextContainer}>
+                        <ThemedText style={[
+                          styles.optionText,
+                          selectedCaseManagementType === 'Monitoring and follow-up' && styles.selectedOptionText
+                        ]}>
+                          Monitoring and follow-up
+                        </ThemedText>
+                        <ThemedText style={styles.serviceDescription}>
+                          Tracking progress, adjusting plans, and ensuring services are meeting student needs
+                        </ThemedText>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -992,7 +1312,7 @@ export default function ClaimsScreen() {
       case 'details':
         return renderClaimDetailsForm();
       default:
-        return null;
+        return renderAppointmentSelection();
     }
   };
 
@@ -1543,6 +1863,48 @@ const styles = StyleSheet.create({
     color: Colors.light.green[200],
     fontWeight: '500',
   },
+  radioContainer: {
+    marginBottom: 16,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.light.tint,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonSelected: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.light.tint,
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.light.green[200],
+  },
+  radioText: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+  },
+  nestedSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.textGray[500] + '30',
+  },
+  underlinedText: {
+    textDecorationLine: 'underline',
+  },
   buttonText: {
     color: Colors.light.background,
     fontSize: 16,
@@ -1583,5 +1945,27 @@ const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.textGray[500] + '20',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  selectedCheckboxContainer: {
+    backgroundColor: Colors.light.textGray[500] + '20',
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionSubtext: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+    marginTop: 4,
+    lineHeight: 18,
   },
 });
