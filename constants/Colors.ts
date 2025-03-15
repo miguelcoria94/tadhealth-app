@@ -48,13 +48,11 @@ export const Colors = {
 
     // Text/Gray Variants
     textGray: {
-      100: "#2B3465", // tad-text-1
-      200: "#3F4570", // tad-text-2
-      300: "#565D84", // tad-text-3
-      400: "#6B7191", // tad-text-4
-      500: "#9497AB", // tad-text-5
-      600: "#C6C8D4", // tad-text-6
-      700: "#EFEFF2", // tad-text-7
+      100: "#1F2937",
+      200: "#4B5563",
+      300: "#9CA3AF",
+      400: "#D1D5DB",
+      500: "#F3F4F6",
     },
 
     // Additional UI Colors
@@ -63,6 +61,13 @@ export const Colors = {
     error: "#FF8281", // tad-pink-1
     info: "#35C3D9", // tad-green-4
     disabled: "#9497AB", // tad-text-5
+    red: {
+      100: "#FEE2E2",
+      200: "#EF4444",
+      300: "#DC2626",
+      400: "#B91C1C",
+      500: "#991B1B",
+    },
   },
   dark: {
     text: "#ECEDEE",

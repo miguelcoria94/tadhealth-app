@@ -15,6 +15,7 @@ import { AppointmentTabs, TabId } from '@/components/appointment/AppointmentTabs
 import { DetailsTab } from '@/components/appointment/tabs/DetailsTab';
 import { ActivityTab } from '@/components/appointment/tabs/ActivityTab';
 import { ReviewTab } from '@/components/appointment/tabs/ReviewTab';
+import { BillingTab } from '@/components/appointment/tabs/BillingTab';
 import { useAppointment } from '@/hooks/useAppointment';
 
 // Import other components as needed
@@ -54,6 +55,8 @@ export default function AppointmentDetailScreen() {
         return <ActivityTab initialActivities={appointment.activity || []} />;
       case 'review':
         return <ReviewTab appointment={appointment} onSaveReview={saveAppointmentReview} />;
+      case 'billing':
+        return <BillingTab appointment={appointment} />;
       // Add other tabs as they are implemented
       default:
         return <DetailsTab appointment={appointment} />;
