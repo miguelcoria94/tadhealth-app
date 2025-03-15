@@ -8,6 +8,8 @@ import {
   Platform,
   Text,
   Modal,
+  TextInput,
+  FlatList,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { SafeAreaView as SafeAreaContext } from "react-native-safe-area-context";
@@ -78,11 +80,16 @@ const MODALITY_OPTIONS: ModalityOption[] = [
 export default function ClaimsScreen() {
   const router = useRouter();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [step, setStep] = useState<'select-appointment' | 'modality' | 'claim-details' | 'eligibility' | 'details'>('select-appointment');
+  const [step, setStep] = useState<'select-appointment' | 'themes-input' | 'modality' | 'claim-details' | 'eligibility' | 'details'>('select-appointment');
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
   const [selectedModalities, setSelectedModalities] = useState<Set<Modality>>(new Set());
   const [selectedThemes, setSelectedThemes] = useState<Set<string>>(new Set());
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
+  const [themesText, setThemesText] = useState('');
+  const [selectedHBIFocus, setSelectedHBIFocus] = useState<Set<string>>(new Set());
+  const [selectedTimeSpent, setSelectedTimeSpent] = useState<string>('');
+  const [selectedAdditionalDetails, setSelectedAdditionalDetails] = useState<Set<string>>(new Set());
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
   // Mock claims data (in reality, this would come from appointments)
   const claims = appointments.map((apt) => ({
@@ -125,7 +132,7 @@ export default function ClaimsScreen() {
 
   const handleAppointmentSelect = (id: number) => {
     setSelectedAppointmentId(id);
-    setStep('modality');
+    setStep('themes-input');
   };
 
   const handleBack = () => {
@@ -136,6 +143,8 @@ export default function ClaimsScreen() {
     } else if (step === 'claim-details') {
       setStep('modality');
     } else if (step === 'modality') {
+      setStep('themes-input');
+    } else if (step === 'themes-input') {
       setStep('select-appointment');
     } else {
       handleCloseModal();
@@ -172,6 +181,26 @@ export default function ClaimsScreen() {
     setSelectedServices(newSelection);
   };
 
+  const toggleHBIFocus = (focus: string) => {
+    const newSelection = new Set(selectedHBIFocus);
+    if (newSelection.has(focus)) {
+      newSelection.delete(focus);
+    } else {
+      newSelection.add(focus);
+    }
+    setSelectedHBIFocus(newSelection);
+  };
+
+  const toggleAdditionalDetail = (detail: string) => {
+    const newSelection = new Set(selectedAdditionalDetails);
+    if (newSelection.has(detail)) {
+      newSelection.delete(detail);
+    } else {
+      newSelection.add(detail);
+    }
+    setSelectedAdditionalDetails(newSelection);
+  };
+
   const handleCheckEligibility = () => {
     // In a real app, this would actually check eligibility with an API
     // For demo purposes, we just move to the next step
@@ -179,11 +208,22 @@ export default function ClaimsScreen() {
     setStep('claim-details');
   };
 
+  const handleContinueFromThemes = () => {
+    if (themesText.trim().length > 0) {
+      setStep('modality');
+    }
+  };
+
   const handleSubmitClaim = () => {
     // In a real app, this would submit the claim data to an API
     // For demo purposes, we just show a success message and close the modal
     alert('Claim submitted successfully!');
     handleCloseModal();
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTimeSpent(time);
+    setShowTimeDropdown(false);
   };
 
   const renderAnalyticsCards = () => (
@@ -276,6 +316,7 @@ export default function ClaimsScreen() {
       </TouchableOpacity>
       <ThemedText style={styles.modalTitle}>
         {step === 'select-appointment' ? 'Create New Claim' : 
+         step === 'themes-input' ? 'Prepare Reimbursement Claim' :
          step === 'modality' ? 'Modality' :
          step === 'claim-details' ? 'Prepare Reimbursement Claim' :
          step === 'eligibility' ? 'Check Eligibility' : 'Claim Details'}
@@ -308,29 +349,60 @@ export default function ClaimsScreen() {
           {eligibleAppointments.map(appointment => (
             <TouchableOpacity
               key={appointment.id}
-              style={styles.appointmentCard}
+              style={[
+                styles.appointmentCard,
+                selectedAppointmentId === appointment.id && styles.selectedAppointmentCard
+              ]}
               onPress={() => handleAppointmentSelect(appointment.id)}
             >
-              <View style={styles.appointmentHeader}>
-                <ThemedText style={styles.appointmentName}>
-                  {appointment.student.name}
-                </ThemedText>
-                <ThemedText style={styles.appointmentDate}>
-                  {new Date(appointment.time.date).toLocaleDateString()} at {appointment.time.time}
-                </ThemedText>
-              </View>
-              <View style={styles.appointmentDetails}>
-                <ThemedText style={styles.detailLabel}>Session Type:</ThemedText>
-                <ThemedText style={styles.detailValue}>{appointment.type}</ThemedText>
-              </View>
-              <View style={styles.cardAction}>
-                <ThemedText style={styles.selectText}>Select</ThemedText>
-                <Feather name="chevron-right" size={20} color={Colors.light.green[200]} />
+              <View style={styles.appointmentCardContent}>
+                <View style={styles.appointmentInfo}>
+                  <ThemedText style={styles.appointmentStudent}>
+                    {appointment.student.name}
+                  </ThemedText>
+                  <ThemedText style={styles.appointmentDate}>
+                    {new Date(appointment.time.date).toLocaleDateString()} at {appointment.time.time}
+                  </ThemedText>
+                  <ThemedText style={styles.appointmentType}>
+                    {appointment.type}
+                  </ThemedText>
+                </View>
+                <View style={[
+                  styles.checkbox,
+                  selectedAppointmentId === appointment.id && styles.checkedBox
+                ]}>
+                  {selectedAppointmentId === appointment.id && (
+                    <Feather 
+                      name="check" 
+                      size={14} 
+                      color={Colors.light.background} 
+                    />
+                  )}
+                </View>
               </View>
             </TouchableOpacity>
           ))}
         </View>
       )}
+      
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.backButtonBottom}
+          onPress={handleCloseModal}
+        >
+          <ThemedText style={styles.backButtonText}>Cancel</ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.continueButton,
+            selectedAppointmentId ? styles.activeButton : styles.inactiveButton
+          ]}
+          onPress={() => selectedAppointmentId && handleAppointmentSelect(selectedAppointmentId)}
+          disabled={!selectedAppointmentId}
+        >
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -405,12 +477,20 @@ export default function ClaimsScreen() {
           Ready to submit a claim? Answer a few quick questions to find out and submit your information for reimbursement.
         </ThemedText>
 
-        <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={handleCheckEligibility}
-        >
-          <Text style={styles.buttonText}>Save and Start a Claim</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.backButtonBottom}
+            onPress={handleBack}
+          >
+            <ThemedText style={styles.backButtonText}>Back</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleCheckEligibility}
+          >
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -448,13 +528,90 @@ export default function ClaimsScreen() {
           </View>
         </View>
         
-        <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={handleCheckEligibility}
-        >
-          <Feather name="check-circle" size={20} color={Colors.light.background} />
-          <Text style={styles.buttonText}>Check Eligibility</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.backButtonBottom}
+            onPress={handleBack}
+          >
+            <ThemedText style={styles.backButtonText}>Back</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleCheckEligibility}
+          >
+            <Feather name="check-circle" size={20} color={Colors.light.background} />
+            <Text style={styles.buttonText}>Check Eligibility</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderThemesInput = () => {
+    const appointment = appointments.find(apt => apt.id === selectedAppointmentId);
+    if (!appointment) return null;
+
+    return (
+      <View style={styles.modalContent}>
+        <ThemedText style={styles.claimDetailsTitle}>
+          Prepare your reimbursement claim
+        </ThemedText>
+        <ThemedText style={styles.claimDetailsSubtitle}>
+          Complete the details below to ensure your session is eligible for reimbursement
+        </ThemedText>
+
+        <View style={styles.appointmentSummary}>
+          <ThemedText style={styles.summaryTitle}>Associated Session</ThemedText>
+          <View style={styles.summaryRow}>
+            <ThemedText style={styles.summaryLabel}>Student:</ThemedText>
+            <ThemedText style={styles.summaryValue}>{appointment.student.name}</ThemedText>
+          </View>
+          <View style={styles.summaryRow}>
+            <ThemedText style={styles.summaryLabel}>Date:</ThemedText>
+            <ThemedText style={styles.summaryValue}>
+              {new Date(appointment.time.date).toLocaleDateString()}
+            </ThemedText>
+          </View>
+          <View style={styles.summaryRow}>
+            <ThemedText style={styles.summaryLabel}>Time:</ThemedText>
+            <ThemedText style={styles.summaryValue}>{appointment.time.time}</ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <ThemedText style={styles.sectionTitle}>Session Themes & Topics</ThemedText>
+          <TextInput
+            style={styles.themesInput}
+            multiline
+            placeholder="Describe the themes and topics covered in this session..."
+            value={themesText}
+            onChangeText={setThemesText}
+            maxLength={800}
+            textAlignVertical="top"
+          />
+          <Text style={styles.characterCount}>
+            {themesText.length}/800 characters
+          </Text>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.backButtonBottom}
+            onPress={handleBack}
+          >
+            <ThemedText style={styles.backButtonText}>Back</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.continueButton,
+              themesText.trim().length > 0 ? styles.activeButton : styles.inactiveButton
+            ]}
+            onPress={handleContinueFromThemes}
+            disabled={themesText.trim().length === 0}
+          >
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -489,6 +646,39 @@ export default function ClaimsScreen() {
         name: 'Case management',
         description: 'Coordinating care and resources for students, ex. consultation and collaboration with administrators, teachers, mental health professionals, and outside agencies'
       }
+    ];
+
+    const hbiFocusOptions = [
+      {
+        name: 'Counseling',
+        description: 'Provides personalized guidance to help students address specific challenges or barriers to healthy behaviors'
+      },
+      {
+        name: 'Psychoeducation',
+        description: 'Teaching about health topics like stress, habits to build awareness and make informed choices'
+      }
+    ];
+
+    const timeOptions = [
+      '15 minutes',
+      '30 minutes',
+      '45 minutes',
+      '60 minutes',
+      '75 minutes',
+      '90 minutes'
+    ];
+
+    const additionalDetailOptions = [
+      'Audio telehealth',
+      'Video telehealth',
+      'Part of dyadic care'
+    ];
+
+    const screenings = [
+      'Annual alcohol misuse',
+      'Adverse childhood experiences (ACES) / trauma',
+      'Depression',
+      'Alcohol and/or substance abuse structured screening'
     ];
 
     return (
@@ -564,20 +754,193 @@ export default function ClaimsScreen() {
           </ThemedText>
           
           {services.map((service) => (
+            <View key={service.name}>
+              <TouchableOpacity
+                style={[
+                  styles.optionButton,
+                  selectedServices.has(service.name) && styles.selectedOption
+                ]}
+                onPress={() => toggleService(service.name)}
+              >
+                <View style={styles.optionLeft}>
+                  <View style={[
+                    styles.checkbox,
+                    selectedServices.has(service.name) && styles.checkedBox
+                  ]}>
+                    {selectedServices.has(service.name) && (
+                      <Feather 
+                        name="check" 
+                        size={14} 
+                        color={Colors.light.background} 
+                      />
+                    )}
+                  </View>
+                  <View style={styles.serviceTextContainer}>
+                    <ThemedText style={[
+                      styles.optionText,
+                      selectedServices.has(service.name) && styles.selectedOptionText
+                    ]}>
+                      {service.name}
+                    </ThemedText>
+                    <ThemedText style={styles.serviceDescription}>
+                      {service.description}
+                    </ThemedText>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* Conditional section for Health behavior intervention */}
+              {selectedServices.has('Health behavior intervention') && service.name === 'Health behavior intervention' && (
+                <View style={styles.conditionalSection}>
+                  <ThemedText style={styles.conditionalTitle}>
+                    What was the focus of this service? (select all that apply)
+                  </ThemedText>
+                  
+                  {hbiFocusOptions.map((focus) => (
+                    <TouchableOpacity
+                      key={focus.name}
+                      style={[
+                        styles.optionButton,
+                        selectedHBIFocus.has(focus.name) && styles.selectedOption
+                      ]}
+                      onPress={() => toggleHBIFocus(focus.name)}
+                    >
+                      <View style={styles.optionLeft}>
+                        <View style={[
+                          styles.checkbox,
+                          selectedHBIFocus.has(focus.name) && styles.checkedBox
+                        ]}>
+                          {selectedHBIFocus.has(focus.name) && (
+                            <Feather 
+                              name="check" 
+                              size={14} 
+                              color={Colors.light.background} 
+                            />
+                          )}
+                        </View>
+                        <View style={styles.serviceTextContainer}>
+                          <ThemedText style={[
+                            styles.optionText,
+                            selectedHBIFocus.has(focus.name) && styles.selectedOptionText
+                          ]}>
+                            {focus.name}
+                          </ThemedText>
+                          <ThemedText style={styles.serviceDescription}>
+                            {focus.description}
+                          </ThemedText>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {/* Conditional section for Preventative medicine */}
+              {selectedServices.has('Preventative medicine') && service.name === 'Preventative medicine' && (
+                <View style={styles.conditionalSection}>
+                  <ThemedText style={styles.conditionalTitle}>
+                    Time spent on this service
+                  </ThemedText>
+                  
+                  <View style={styles.dropdownContainer}>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => setShowTimeDropdown(!showTimeDropdown)}
+                    >
+                      <ThemedText style={styles.dropdownText}>
+                        {selectedTimeSpent || 'Select time'}
+                      </ThemedText>
+                      <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
+                    </TouchableOpacity>
+                    
+                    {showTimeDropdown && (
+                      <View style={styles.dropdownList}>
+                        {timeOptions.map((time) => (
+                          <TouchableOpacity
+                            key={time}
+                            style={[
+                              styles.dropdownItem,
+                              selectedTimeSpent === time && styles.selectedDropdownItem
+                            ]}
+                            onPress={() => handleTimeSelect(time)}
+                          >
+                            <ThemedText style={[
+                              styles.dropdownItemText,
+                              selectedTimeSpent === time && styles.selectedDropdownItemText
+                            ]}>
+                              {time}
+                            </ThemedText>
+                            {selectedTimeSpent === time && (
+                              <Feather name="check" size={16} color={Colors.light.green[200]} />
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+
+                  <ThemedText style={[styles.conditionalTitle, { marginTop: 16 }]}>
+                    Additional details (select if applicable)
+                  </ThemedText>
+                  
+                  {additionalDetailOptions.map((detail) => (
+                    <TouchableOpacity
+                      key={detail}
+                      style={[
+                        styles.optionButton,
+                        selectedAdditionalDetails.has(detail) && styles.selectedOption
+                      ]}
+                      onPress={() => toggleAdditionalDetail(detail)}
+                    >
+                      <View style={styles.optionLeft}>
+                        <View style={[
+                          styles.checkbox,
+                          selectedAdditionalDetails.has(detail) && styles.checkedBox
+                        ]}>
+                          {selectedAdditionalDetails.has(detail) && (
+                            <Feather 
+                              name="check" 
+                              size={14} 
+                              color={Colors.light.background} 
+                            />
+                          )}
+                        </View>
+                        <ThemedText style={[
+                          styles.optionText,
+                          selectedAdditionalDetails.has(detail) && styles.selectedOptionText
+                        ]}>
+                          {detail}
+                        </ThemedText>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <ThemedText style={styles.sectionTitle}>Screening</ThemedText>
+          <ThemedText style={styles.sectionSubtitle}>
+            Identification of potential health, emotional, or behavioral concerns
+          </ThemedText>
+          
+          {screenings.map((screening) => (
             <TouchableOpacity
-              key={service.name}
+              key={screening}
               style={[
                 styles.optionButton,
-                selectedServices.has(service.name) && styles.selectedOption
+                selectedServices.has(screening) && styles.selectedOption
               ]}
-              onPress={() => toggleService(service.name)}
+              onPress={() => toggleService(screening)}
             >
               <View style={styles.optionLeft}>
                 <View style={[
                   styles.checkbox,
-                  selectedServices.has(service.name) && styles.checkedBox
+                  selectedServices.has(screening) && styles.checkedBox
                 ]}>
-                  {selectedServices.has(service.name) && (
+                  {selectedServices.has(screening) && (
                     <Feather 
                       name="check" 
                       size={14} 
@@ -585,28 +948,31 @@ export default function ClaimsScreen() {
                     />
                   )}
                 </View>
-                <View style={styles.serviceTextContainer}>
-                  <ThemedText style={[
-                    styles.optionText,
-                    selectedServices.has(service.name) && styles.selectedOptionText
-                  ]}>
-                    {service.name}
-                  </ThemedText>
-                  <ThemedText style={styles.serviceDescription}>
-                    {service.description}
-                  </ThemedText>
-                </View>
+                <ThemedText style={[
+                  styles.optionText,
+                  selectedServices.has(screening) && styles.selectedOptionText
+                ]}>
+                  {screening}
+                </ThemedText>
               </View>
             </TouchableOpacity>
           ))}
         </View>
 
-        <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={() => setStep('eligibility')}
-        >
-          <Text style={styles.buttonText}>Continue</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.backButtonBottom}
+            onPress={handleBack}
+          >
+            <ThemedText style={styles.backButtonText}>Back</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={() => setStep('eligibility')}
+          >
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -615,6 +981,8 @@ export default function ClaimsScreen() {
     switch (step) {
       case 'select-appointment':
         return renderAppointmentSelection();
+      case 'themes-input':
+        return renderThemesInput();
       case 'modality':
         return renderModalitySelection();
       case 'claim-details':
@@ -901,12 +1269,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.textGray[500],
   },
-  appointmentHeader: {
+  appointmentCardContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
   },
-  appointmentName: {
+  appointmentInfo: {
+    flex: 1,
+  },
+  appointmentStudent: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.light.textGray[100],
@@ -915,71 +1286,64 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.textGray[300],
   },
-  appointmentDetails: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  detailLabel: {
+  appointmentType: {
     fontSize: 14,
     color: Colors.light.textGray[300],
-    marginRight: 8,
   },
-  detailValue: {
-    fontSize: 14,
-    color: Colors.light.textGray[200],
-  },
-  cardAction: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  selectText: {
-    fontSize: 16,
-    color: Colors.light.green[200],
-    marginRight: 8,
-  },
-  appointmentSummary: {
-    backgroundColor: Colors.light.background,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.light.textGray[500],
-    marginBottom: 24,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.light.textGray[100],
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: Colors.light.textGray[300],
-    width: 80,
-  },
-  summaryValue: {
-    fontSize: 14,
-    color: Colors.light.textGray[100],
-    flex: 1,
-  },
-  primaryButton: {
-    backgroundColor: Colors.light.green[200],
-    flexDirection: 'row',
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.light.textGray[300],
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 16,
   },
-  buttonText: {
-    color: Colors.light.background,
+  checkedBox: {
+    backgroundColor: Colors.light.green[200],
+    borderColor: Colors.light.green[200],
+  },
+  selectedAppointmentCard: {
+    backgroundColor: Colors.light.textGray[500] + '10',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  backButtonBottom: {
+    flex: 1,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[300],
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  backButtonText: {
+    color: Colors.light.textGray[100],
     fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontWeight: '500',
+  },
+  continueButton: {
+    flex: 2,
+    backgroundColor: Colors.light.green[200],
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  activeButton: {
+    backgroundColor: Colors.light.green[200],
+    opacity: 1,
+  },
+  inactiveButton: {
+    backgroundColor: Colors.light.textGray[300],
+    opacity: 0.7,
   },
   eligibilityResult: {
     backgroundColor: Colors.light.background,
@@ -1048,19 +1412,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: Colors.light.textGray[300],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkedBox: {
-    backgroundColor: Colors.light.green[200],
-    borderColor: Colors.light.green[200],
-  },
   optionText: {
     fontSize: 16,
     color: Colors.light.textGray[100],
@@ -1114,5 +1465,123 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[300],
     marginTop: 4,
     lineHeight: 18,
+  },
+  themesInput: {
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500],
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+    minHeight: 150,
+    marginTop: 8,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: Colors.light.textGray[300],
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  conditionalSection: {
+    marginLeft: 32,
+    marginTop: 8,
+    marginBottom: 16,
+    padding: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: Colors.light.textGray[500],
+    backgroundColor: Colors.light.textGray[500] + '08',
+    borderRadius: 8,
+  },
+  conditionalTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.light.textGray[100],
+    marginBottom: 12,
+  },
+  dropdownContainer: {
+    marginBottom: 16,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500],
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: Colors.light.background,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+  },
+  dropdownList: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.light.background,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500],
+    borderRadius: 8,
+    zIndex: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    maxHeight: 200,
+  },
+  selectedDropdownItem: {
+    backgroundColor: Colors.light.textGray[500] + '20',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+  },
+  selectedDropdownItemText: {
+    color: Colors.light.green[200],
+    fontWeight: '500',
+  },
+  buttonText: {
+    color: Colors.light.background,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  appointmentSummary: {
+    backgroundColor: Colors.light.background,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500],
+    marginBottom: 24,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.light.textGray[100],
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: Colors.light.textGray[300],
+    width: 80,
+  },
+  summaryValue: {
+    fontSize: 14,
+    color: Colors.light.textGray[100],
+    flex: 1,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.textGray[500] + '20',
   },
 });

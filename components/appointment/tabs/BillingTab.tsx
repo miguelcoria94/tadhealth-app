@@ -7,6 +7,8 @@ import {
   ScrollView,
   Text,
   Platform,
+  TextInput,
+  FlatList,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
@@ -56,9 +58,14 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showInitialMessage, setShowInitialMessage] = useState(true);
   const [selectedModalities, setSelectedModalities] = useState<Set<Modality>>(new Set());
-  const [step, setStep] = useState<'initial' | 'modality' | 'claim-details'>('initial');
+  const [step, setStep] = useState<'initial' | 'themes-input' | 'modality' | 'claim-details'>('initial');
   const [selectedThemes, setSelectedThemes] = useState<Set<string>>(new Set());
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
+  const [themesText, setThemesText] = useState('');
+  const [selectedHBIFocus, setSelectedHBIFocus] = useState<Set<string>>(new Set());
+  const [selectedTimeSpent, setSelectedTimeSpent] = useState<string>('');
+  const [selectedAdditionalDetails, setSelectedAdditionalDetails] = useState<Set<string>>(new Set());
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
   const handleCreateClaim = () => {
     console.log('Create claim pressed');
@@ -76,7 +83,7 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
 
   const handleComplete = () => {
     setShowInitialMessage(false);
-    setStep('modality');
+    setStep('themes-input');
   };
 
   const handleSave = () => {
@@ -119,15 +126,68 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
     setSelectedServices(newSelection);
   };
 
+  const toggleHBIFocus = (focus: string) => {
+    const newSelection = new Set(selectedHBIFocus);
+    if (newSelection.has(focus)) {
+      newSelection.delete(focus);
+    } else {
+      newSelection.add(focus);
+    }
+    setSelectedHBIFocus(newSelection);
+  };
+
+  const toggleAdditionalDetail = (detail: string) => {
+    const newSelection = new Set(selectedAdditionalDetails);
+    if (newSelection.has(detail)) {
+      newSelection.delete(detail);
+    } else {
+      newSelection.add(detail);
+    }
+    setSelectedAdditionalDetails(newSelection);
+  };
+
   const handleContinue = () => {
     // In a real app, this would submit the claim data to an API
     handleCloseModal();
   };
 
+  const handleContinueFromThemes = () => {
+    if (themesText.trim().length > 0) {
+      setStep('modality');
+    }
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTimeSpent(time);
+    setShowTimeDropdown(false);
+  };
+
+  const handleBack = () => {
+    if (step === 'claim-details') {
+      setStep('modality');
+    } else if (step === 'modality') {
+      setStep('themes-input');
+    } else if (step === 'themes-input') {
+      setStep('initial');
+      setShowInitialMessage(true);
+    } else {
+      handleCloseModal();
+    }
+  };
+
   const renderModalHeader = () => (
     <View style={styles.modalHeader}>
+      {step !== 'initial' && (
+        <Pressable 
+          style={styles.backButton}
+          onPress={handleBack}
+        >
+          <Feather name="arrow-left" size={24} color={Colors.light.textGray[300]} />
+        </Pressable>
+      )}
       <ThemedText style={styles.modalTitle}>
         {step === 'initial' ? 'Claim Eligibility' : 
+         step === 'themes-input' ? 'Prepare Reimbursement Claim' :
          step === 'modality' ? 'Modality' : 
          'Prepare Reimbursement Claim'}
       </ThemedText>
@@ -208,14 +268,22 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
           Ready to submit a claim? Answer a few quick questions to find out and submit your information for reimbursement.
         </ThemedText>
 
-        <Pressable 
-          style={styles.startClaimButton}
-          onPress={handleStartClaim}
-        >
-          <ThemedText style={styles.buttonText}>
-            Save and Start a Claim
-          </ThemedText>
-        </Pressable>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={styles.backButtonBottom}
+            onPress={handleBack}
+          >
+            <ThemedText style={styles.backButtonText}>Back</ThemedText>
+          </Pressable>
+          <Pressable 
+            style={styles.continueButton}
+            onPress={handleStartClaim}
+          >
+            <ThemedText style={styles.buttonText}>
+              Continue
+            </ThemedText>
+          </Pressable>
+        </View>
 
         <View style={styles.bottomButtons}>
           <Pressable style={styles.moreOptionsButton}>
@@ -229,6 +297,70 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
           </Pressable>
         </View>
       </ThemedView>
+    </View>
+  );
+
+  const renderThemesInput = () => (
+    <View style={styles.modalContent}>
+      <ThemedText style={styles.claimDetailsTitle}>
+        Prepare your reimbursement claim
+      </ThemedText>
+      <ThemedText style={styles.claimDetailsSubtitle}>
+        Complete the details below to ensure your session is eligible for reimbursement
+      </ThemedText>
+
+      <View style={styles.appointmentSummary}>
+        <ThemedText style={styles.summaryTitle}>Associated Session</ThemedText>
+        <View style={styles.summaryRow}>
+          <ThemedText style={styles.summaryLabel}>Student:</ThemedText>
+          <ThemedText style={styles.summaryValue}>{appointment.student.name}</ThemedText>
+        </View>
+        <View style={styles.summaryRow}>
+          <ThemedText style={styles.summaryLabel}>Date:</ThemedText>
+          <ThemedText style={styles.summaryValue}>
+            {new Date(appointment.time.date).toLocaleDateString()}
+          </ThemedText>
+        </View>
+        <View style={styles.summaryRow}>
+          <ThemedText style={styles.summaryLabel}>Time:</ThemedText>
+          <ThemedText style={styles.summaryValue}>{appointment.time.time}</ThemedText>
+        </View>
+      </View>
+
+      <View style={styles.sectionContainer}>
+        <ThemedText style={styles.sectionTitle}>Session Themes & Topics</ThemedText>
+        <TextInput
+          style={styles.themesInput}
+          multiline
+          placeholder="Describe the themes and topics covered in this session..."
+          value={themesText}
+          onChangeText={setThemesText}
+          maxLength={800}
+          textAlignVertical="top"
+        />
+        <Text style={styles.characterCount}>
+          {themesText.length}/800 characters
+        </Text>
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Pressable
+          style={styles.backButtonBottom}
+          onPress={handleBack}
+        >
+          <ThemedText style={styles.backButtonText}>Back</ThemedText>
+        </Pressable>
+        <Pressable
+          style={[
+            styles.continueButton,
+            themesText.trim().length > 0 ? styles.activeButton : styles.inactiveButton
+          ]}
+          onPress={handleContinueFromThemes}
+          disabled={themesText.trim().length === 0}
+        >
+          <ThemedText style={styles.buttonText}>Continue</ThemedText>
+        </Pressable>
+      </View>
     </View>
   );
 
@@ -259,6 +391,39 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
         name: 'Case management',
         description: 'Coordinating care and resources for students, ex. consultation and collaboration with administrators, teachers, mental health professionals, and outside agencies'
       }
+    ];
+
+    const hbiFocusOptions = [
+      {
+        name: 'Counseling',
+        description: 'Provides personalized guidance to help students address specific challenges or barriers to healthy behaviors'
+      },
+      {
+        name: 'Psychoeducation',
+        description: 'Teaching about health topics like stress, habits to build awareness and make informed choices'
+      }
+    ];
+
+    const timeOptions = [
+      '15 minutes',
+      '30 minutes',
+      '45 minutes',
+      '60 minutes',
+      '75 minutes',
+      '90 minutes'
+    ];
+
+    const additionalDetailOptions = [
+      'Audio telehealth',
+      'Video telehealth',
+      'Part of dyadic care'
+    ];
+
+    const screenings = [
+      'Annual alcohol misuse',
+      'Adverse childhood experiences (ACES) / trauma',
+      'Depression',
+      'Alcohol and/or substance abuse structured screening'
     ];
 
     return (
@@ -334,20 +499,193 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
           </ThemedText>
           
           {services.map((service) => (
+            <View key={service.name}>
+              <Pressable
+                style={[
+                  styles.optionButton,
+                  selectedServices.has(service.name) && styles.selectedOption
+                ]}
+                onPress={() => toggleService(service.name)}
+              >
+                <View style={styles.optionLeft}>
+                  <View style={[
+                    styles.checkbox,
+                    selectedServices.has(service.name) && styles.checkedBox
+                  ]}>
+                    {selectedServices.has(service.name) && (
+                      <Feather 
+                        name="check" 
+                        size={14} 
+                        color={Colors.light.background} 
+                      />
+                    )}
+                  </View>
+                  <View style={styles.serviceTextContainer}>
+                    <ThemedText style={[
+                      styles.optionText,
+                      selectedServices.has(service.name) && styles.selectedOptionText
+                    ]}>
+                      {service.name}
+                    </ThemedText>
+                    <ThemedText style={styles.serviceDescription}>
+                      {service.description}
+                    </ThemedText>
+                  </View>
+                </View>
+              </Pressable>
+
+              {/* Conditional section for Health behavior intervention */}
+              {selectedServices.has('Health behavior intervention') && service.name === 'Health behavior intervention' && (
+                <View style={styles.conditionalSection}>
+                  <ThemedText style={styles.conditionalTitle}>
+                    What was the focus of this service? (select all that apply)
+                  </ThemedText>
+                  
+                  {hbiFocusOptions.map((focus) => (
+                    <Pressable
+                      key={focus.name}
+                      style={[
+                        styles.optionButton,
+                        selectedHBIFocus.has(focus.name) && styles.selectedOption
+                      ]}
+                      onPress={() => toggleHBIFocus(focus.name)}
+                    >
+                      <View style={styles.optionLeft}>
+                        <View style={[
+                          styles.checkbox,
+                          selectedHBIFocus.has(focus.name) && styles.checkedBox
+                        ]}>
+                          {selectedHBIFocus.has(focus.name) && (
+                            <Feather 
+                              name="check" 
+                              size={14} 
+                              color={Colors.light.background} 
+                            />
+                          )}
+                        </View>
+                        <View style={styles.serviceTextContainer}>
+                          <ThemedText style={[
+                            styles.optionText,
+                            selectedHBIFocus.has(focus.name) && styles.selectedOptionText
+                          ]}>
+                            {focus.name}
+                          </ThemedText>
+                          <ThemedText style={styles.serviceDescription}>
+                            {focus.description}
+                          </ThemedText>
+                        </View>
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+
+              {/* Conditional section for Preventative medicine */}
+              {selectedServices.has('Preventative medicine') && service.name === 'Preventative medicine' && (
+                <View style={styles.conditionalSection}>
+                  <ThemedText style={styles.conditionalTitle}>
+                    Time spent on this service
+                  </ThemedText>
+                  
+                  <View style={styles.dropdownContainer}>
+                    <Pressable
+                      style={styles.dropdown}
+                      onPress={() => setShowTimeDropdown(!showTimeDropdown)}
+                    >
+                      <ThemedText style={styles.dropdownText}>
+                        {selectedTimeSpent || 'Select time'}
+                      </ThemedText>
+                      <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
+                    </Pressable>
+                    
+                    {showTimeDropdown && (
+                      <View style={styles.dropdownList}>
+                        {timeOptions.map((time) => (
+                          <Pressable
+                            key={time}
+                            style={[
+                              styles.dropdownItem,
+                              selectedTimeSpent === time && styles.selectedDropdownItem
+                            ]}
+                            onPress={() => handleTimeSelect(time)}
+                          >
+                            <ThemedText style={[
+                              styles.dropdownItemText,
+                              selectedTimeSpent === time && styles.selectedDropdownItemText
+                            ]}>
+                              {time}
+                            </ThemedText>
+                            {selectedTimeSpent === time && (
+                              <Feather name="check" size={16} color={Colors.light.green[200]} />
+                            )}
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+
+                  <ThemedText style={[styles.conditionalTitle, { marginTop: 16 }]}>
+                    Additional details (select if applicable)
+                  </ThemedText>
+                  
+                  {additionalDetailOptions.map((detail) => (
+                    <Pressable
+                      key={detail}
+                      style={[
+                        styles.optionButton,
+                        selectedAdditionalDetails.has(detail) && styles.selectedOption
+                      ]}
+                      onPress={() => toggleAdditionalDetail(detail)}
+                    >
+                      <View style={styles.optionLeft}>
+                        <View style={[
+                          styles.checkbox,
+                          selectedAdditionalDetails.has(detail) && styles.checkedBox
+                        ]}>
+                          {selectedAdditionalDetails.has(detail) && (
+                            <Feather 
+                              name="check" 
+                              size={14} 
+                              color={Colors.light.background} 
+                            />
+                          )}
+                        </View>
+                        <ThemedText style={[
+                          styles.optionText,
+                          selectedAdditionalDetails.has(detail) && styles.selectedOptionText
+                        ]}>
+                          {detail}
+                        </ThemedText>
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <ThemedText style={styles.sectionTitle}>Screening</ThemedText>
+          <ThemedText style={styles.sectionSubtitle}>
+            Identification of potential health, emotional, or behavioral concerns
+          </ThemedText>
+          
+          {screenings.map((screening) => (
             <Pressable
-              key={service.name}
+              key={screening}
               style={[
                 styles.optionButton,
-                selectedServices.has(service.name) && styles.selectedOption
+                selectedServices.has(screening) && styles.selectedOption
               ]}
-              onPress={() => toggleService(service.name)}
+              onPress={() => toggleService(screening)}
             >
               <View style={styles.optionLeft}>
                 <View style={[
                   styles.checkbox,
-                  selectedServices.has(service.name) && styles.checkedBox
+                  selectedServices.has(screening) && styles.checkedBox
                 ]}>
-                  {selectedServices.has(service.name) && (
+                  {selectedServices.has(screening) && (
                     <Feather 
                       name="check" 
                       size={14} 
@@ -355,28 +693,31 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
                     />
                   )}
                 </View>
-                <View style={styles.serviceTextContainer}>
-                  <ThemedText style={[
-                    styles.optionText,
-                    selectedServices.has(service.name) && styles.selectedOptionText
-                  ]}>
-                    {service.name}
-                  </ThemedText>
-                  <ThemedText style={styles.serviceDescription}>
-                    {service.description}
-                  </ThemedText>
-                </View>
+                <ThemedText style={[
+                  styles.optionText,
+                  selectedServices.has(screening) && styles.selectedOptionText
+                ]}>
+                  {screening}
+                </ThemedText>
               </View>
             </Pressable>
           ))}
         </View>
 
-        <Pressable
-          style={styles.startClaimButton}
-          onPress={handleContinue}
-        >
-          <ThemedText style={styles.buttonText}>Continue</ThemedText>
-        </Pressable>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={styles.backButtonBottom}
+            onPress={handleBack}
+          >
+            <ThemedText style={styles.backButtonText}>Back</ThemedText>
+          </Pressable>
+          <Pressable
+            style={styles.continueButton}
+            onPress={handleContinue}
+          >
+            <ThemedText style={styles.buttonText}>Continue</ThemedText>
+          </Pressable>
+        </View>
       </View>
     );
   };
@@ -407,6 +748,7 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
             {renderModalHeader()}
             <ScrollView style={styles.modalScrollView}>
               {step === 'initial' && showInitialMessage && renderInitialMessage()}
+              {step === 'themes-input' && renderThemesInput()}
               {step === 'modality' && renderModalitySelection()}
               {step === 'claim-details' && renderClaimDetailsForm()}
             </ScrollView>
@@ -469,6 +811,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.textGray[500],
     paddingTop: Platform.OS === 'ios' ? 16 : 16,
+  },
+  backButton: {
+    padding: 12,
+    marginLeft: 4,
   },
   closeButton: {
     padding: 12,
@@ -657,5 +1003,127 @@ const styles = StyleSheet.create({
     color: Colors.light.textGray[300],
     marginTop: 4,
     lineHeight: 18,
+  },
+  themesInput: {
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500],
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+    minHeight: 150,
+    marginTop: 8,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: Colors.light.textGray[300],
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  activeButton: {
+    backgroundColor: Colors.light.green[200],
+    opacity: 1,
+  },
+  inactiveButton: {
+    backgroundColor: Colors.light.textGray[300],
+    opacity: 0.7,
+  },
+  conditionalSection: {
+    marginLeft: 32,
+    marginTop: 8,
+    marginBottom: 16,
+    padding: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: Colors.light.textGray[500],
+    backgroundColor: Colors.light.textGray[500] + '08',
+    borderRadius: 8,
+  },
+  conditionalTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.light.textGray[100],
+    marginBottom: 12,
+  },
+  dropdownContainer: {
+    marginBottom: 16,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500],
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: Colors.light.background,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+  },
+  dropdownList: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.light.background,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500],
+    borderRadius: 8,
+    zIndex: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.textGray[500] + '20',
+  },
+  selectedDropdownItem: {
+    backgroundColor: Colors.light.textGray[500] + '20',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: Colors.light.textGray[100],
+  },
+  selectedDropdownItemText: {
+    color: Colors.light.green[200],
+    fontWeight: '500',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  backButtonBottom: {
+    flex: 1,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[300],
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  backButtonText: {
+    color: Colors.light.textGray[100],
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  continueButton: {
+    flex: 2,
+    backgroundColor: Colors.light.green[200],
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }); 
