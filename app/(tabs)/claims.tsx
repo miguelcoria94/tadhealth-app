@@ -94,18 +94,72 @@ export default function ClaimsScreen() {
   const [selectedTrainingFocus, setSelectedTrainingFocus] = useState<Set<string>>(new Set());
   const [selectedCaseManagementType, setSelectedCaseManagementType] = useState<string>('');
 
-  // Mock claims data (in reality, this would come from appointments)
-  const claims = appointments.map((apt) => ({
-    id: `CLAIM-${apt.id}`,
-    referenceNo: `IS9JY${Math.floor(Math.random() * 90000) + 10000}`,
-    submissionDate: new Date().toLocaleDateString(),
-    student: apt.student,
-    appointment: {
-      date: apt.time.date,
-      time: apt.time.time,
+  // Fixed claims data with specific statuses for demo
+  const claims = [
+    {
+      id: "claim-1",
+      referenceNo: "REF100001",
+      submissionDate: new Date().toLocaleDateString(),
+      student: {
+        id: 1001,
+        name: "Emma Johnson",
+        age: 16,
+        grade: 10,
+        mentalState: "Stable",
+        consent: {
+          studentConsent: true,
+          parentConsent: true,
+        },
+      },
+      appointment: {
+        date: new Date().toLocaleDateString(),
+        time: "10:00 AM",
+      },
+      status: "Submitted", // Completed
     },
-    status: Math.random() > 0.5 ? "Submitted" : "In Progress",
-  }));
+    {
+      id: "claim-2",
+      referenceNo: "REF100002",
+      submissionDate: new Date().toLocaleDateString(),
+      student: {
+        id: 1002,
+        name: "Michael Smith",
+        age: 15,
+        grade: 9,
+        mentalState: "Improving",
+        consent: {
+          studentConsent: true,
+          parentConsent: true,
+        },
+      },
+      appointment: {
+        date: new Date().toLocaleDateString(),
+        time: "11:30 AM",
+      },
+      status: "In Progress", // In Progress
+    },
+    {
+      id: "claim-3",
+      referenceNo: "REF100003",
+      submissionDate: "",
+      student: {
+        id: 1003,
+        name: "Sophia Williams",
+        age: 17,
+        grade: 11,
+        mentalState: "Needs Assessment",
+        consent: {
+          studentConsent: true,
+          parentConsent: true,
+        },
+      },
+      appointment: {
+        date: new Date().toLocaleDateString(),
+        time: "2:00 PM",
+      },
+      status: "Not Started", // Not Started
+    },
+  ];
 
   const analytics = {
     monthlyEarnings: 4850.0,
@@ -280,7 +334,11 @@ export default function ClaimsScreen() {
   );
 
   const renderClaimCard = (claim: Claim) => (
-    <View key={claim.id} style={styles.claimCard}>
+    <TouchableOpacity 
+      key={claim.id} 
+      style={styles.claimCard}
+      onPress={() => router.push(`/claim-detail?id=${claim.id}`)}
+    >
       <View style={styles.claimHeader}>
         <View>
           <Text style={styles.studentName}>{claim.student.name}</Text>
@@ -293,7 +351,9 @@ export default function ClaimsScreen() {
               backgroundColor:
                 claim.status === "Submitted"
                   ? Colors.light.success
-                  : Colors.light.textGray[300],
+                  : claim.status === "In Progress"
+                  ? Colors.light.textGray[300]
+                  : Colors.light.textGray[500],
             },
           ]}
         >
@@ -310,17 +370,16 @@ export default function ClaimsScreen() {
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.label}>Submission Date</Text>
-          <Text style={styles.value}>{claim.submissionDate}</Text>
+          <Text style={styles.value}>{claim.submissionDate || 'Not submitted yet'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.label}>Appointment</Text>
           <Text style={styles.value}>
-            {new Date(claim.appointment.date).toLocaleDateString()} at{" "}
-            {claim.appointment.time}
+            {claim.appointment.date} at {claim.appointment.time}
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderModalHeader = () => (
