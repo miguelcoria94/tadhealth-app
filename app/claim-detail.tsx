@@ -232,19 +232,65 @@ export default function ClaimDetailScreen() {
             ),
           }} 
         />
-        <View style={styles.notStartedContainer}>
-          <FontAwesome name="file-text-o" size={64} color={Colors.light.textGray[400]} style={styles.notStartedIcon} />
-          <ThemedText style={styles.notStartedTitle}>No Claim Created Yet</ThemedText>
-          <ThemedText style={styles.notStartedDescription}>
-            This appointment is eligible for billing, but a claim has not been created yet.
-          </ThemedText>
-          <Pressable 
-            style={styles.createClaimButton}
-            onPress={() => router.push(`/claims-create?appointmentId=${claim.appointment.id}`)}
-          >
-            <ThemedText style={styles.createClaimButtonText}>Create Claim</ThemedText>
-          </Pressable>
-        </View>
+        <ScrollView style={styles.scrollContainer}>
+          <View style={styles.header}>
+            <ThemedText style={styles.title}>
+              Claim {claim.referenceNo}
+            </ThemedText>
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: Colors.light.textGray[500],
+                },
+              ]}
+            >
+              <ThemedText style={styles.statusText}>Not Started</ThemedText>
+            </View>
+          </View>
+          
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Student Information</ThemedText>
+            <View style={styles.row}>
+              <ThemedText style={styles.label}>Name:</ThemedText>
+              <ThemedText style={styles.value}>{claim.student.name}</ThemedText>
+            </View>
+            <View style={styles.row}>
+              <ThemedText style={styles.label}>ID:</ThemedText>
+              <ThemedText style={styles.value}>{claim.student.id}</ThemedText>
+            </View>
+          </ThemedView>
+          
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Appointment Information</ThemedText>
+            <View style={styles.row}>
+              <ThemedText style={styles.label}>Date:</ThemedText>
+              <ThemedText style={styles.value}>{claim.appointment.date}</ThemedText>
+            </View>
+            <View style={styles.row}>
+              <ThemedText style={styles.label}>Time:</ThemedText>
+              <ThemedText style={styles.value}>{claim.appointment.time}</ThemedText>
+            </View>
+            <View style={styles.row}>
+              <ThemedText style={styles.label}>Service:</ThemedText>
+              <ThemedText style={styles.value}>{claim.appointment.service}</ThemedText>
+            </View>
+          </ThemedView>
+          
+          <ThemedView style={styles.notStartedSection}>
+            <FontAwesome name="file-text-o" size={48} color={Colors.light.textGray[400]} style={styles.notStartedIcon} />
+            <ThemedText style={styles.notStartedTitle}>No Claim Created Yet</ThemedText>
+            <ThemedText style={styles.notStartedDescription}>
+              This appointment is eligible for billing, but a claim has not been created yet.
+            </ThemedText>
+            <Pressable 
+              style={styles.createClaimButton}
+              onPress={() => router.push(`/claims-create?appointmentId=${claim.appointment.id}`)}
+            >
+              <ThemedText style={styles.createClaimButtonText}>Create Claim</ThemedText>
+            </Pressable>
+          </ThemedView>
+        </ScrollView>
       </View>
     );
   }
@@ -351,7 +397,7 @@ export default function ClaimDetailScreen() {
                 
                 <View style={styles.row}>
                   <ThemedText style={styles.label}>Amount:</ThemedText>
-                  <ThemedText style={styles.value}>${claim.details.amount.toFixed(2)}</ThemedText>
+                  <ThemedText style={[styles.value, styles.amountText]}>${claim.details.amount.toFixed(2)}</ThemedText>
                 </View>
               </>
             )}
@@ -362,11 +408,19 @@ export default function ClaimDetailScreen() {
                 {claim.details.modalitiesUsed.map((modality, index) => (
                   <View key={index} style={[
                     styles.tag,
-                    { backgroundColor: claim.status === 'Submitted' ? Colors.light.green[100] : Colors.light.textGray[100] }
+                    { 
+                      backgroundColor: claim.status === 'Submitted' 
+                        ? Colors.light.green[100] + '30'
+                        : Colors.light.textGray[100] + '30'
+                    }
                   ]}>
                     <ThemedText style={[
                       styles.tagText,
-                      { color: claim.status === 'Submitted' ? Colors.light.green[200] : Colors.light.textGray[300] }
+                      { 
+                        color: claim.status === 'Submitted' 
+                          ? Colors.light.green[200]
+                          : Colors.light.textGray[100]
+                      }
                     ]}>{modality}</ThemedText>
                   </View>
                 ))}
@@ -403,12 +457,18 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     padding: 16,
+    backgroundColor: Colors.light.textGray[500] + '08',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+    backgroundColor: Colors.light.background,
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "10",
   },
   title: {
     fontSize: 20,
@@ -429,17 +489,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
+    backgroundColor: Colors.light.background,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "10",
   },
   sectionTitle: {
     marginBottom: 12,
     color: Colors.light.tint,
+    fontSize: 16,
+    fontWeight: '600',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.textGray[500] + "20",
+    borderBottomColor: Colors.light.textGray[500] + "10",
   },
   label: {
     fontSize: 14,
@@ -452,6 +517,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 2,
     textAlign: 'right',
+  },
+  amountText: {
+    color: Colors.light.green[200],
+    fontWeight: '600',
   },
   errorContainer: {
     flex: 1,
@@ -479,6 +548,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  notStartedSection: {
+    borderRadius: 8,
+    padding: 24,
+    marginBottom: 16,
+    backgroundColor: Colors.light.background,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "10",
+    alignItems: 'center',
   },
   notStartedIcon: {
     marginBottom: 16,
@@ -509,12 +587,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   missingDataContainer: {
-    backgroundColor: Colors.light.textGray[100],
+    backgroundColor: Colors.light.textGray[100] + '20',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: Colors.light.textGray[200],
+    borderColor: Colors.light.textGray[200] + '50',
     borderStyle: 'dashed',
   },
   missingDataText: {
@@ -526,36 +604,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     flex: 1,
+    justifyContent: 'flex-end',
   },
   tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
     marginBottom: 8,
   },
   tagText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
   },
   addMoreTag: {
     borderWidth: 1,
     borderColor: Colors.light.tint,
     backgroundColor: 'transparent',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
     marginBottom: 8,
   },
   addMoreText: {
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.light.tint,
   },
   inProgressActions: {
     padding: 16,
-    marginTop: 16,
+    marginTop: 8,
     marginBottom: 32,
+    backgroundColor: Colors.light.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.light.textGray[500] + "10",
   },
   continueButton: {
     backgroundColor: Colors.light.tint,
