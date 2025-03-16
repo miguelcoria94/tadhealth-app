@@ -71,6 +71,7 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
   const [selectedCaseManagementTypes, setSelectedCaseManagementTypes] = useState<Set<string>>(new Set());
   const [acesOutcome, setAcesOutcome] = useState<'High Risk' | 'Low Risk'>('High Risk');
   const [depressionOutcome, setDepressionOutcome] = useState<'Positive, Depression is present and follow-up plan is documented' | 'Negative, Depression is absent and a follow-up is not required'>('Positive, Depression is present and follow-up plan is documented');
+  const [familyPresent, setFamilyPresent] = useState<'One family with the student present' | 'One family without the student present' | 'Multiple families' | null>(null);
 
   const handleCreateClaim = () => {
     console.log('Create claim pressed');
@@ -301,8 +302,12 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
             <ThemedText style={styles.backButtonText}>Back</ThemedText>
           </Pressable>
           <Pressable 
-            style={styles.continueButton}
+            style={[
+              styles.continueButton,
+              selectedModalities.size > 0 ? styles.activeButton : styles.inactiveButton
+            ]}
             onPress={handleStartClaim}
+            disabled={selectedModalities.size === 0}
           >
             <ThemedText style={styles.buttonText}>
               Continue
@@ -2665,70 +2670,271 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
             {selectedServices.has('Family') && (
               <View style={[styles.nestedSection, { marginLeft: 32, borderLeftWidth: 2, borderLeftColor: Colors.light.textGray[500], paddingLeft: 12 }]}>
                 <ThemedText style={styles.conditionalTitle}>
-                  Time spent on this service
+                  Who was present during this service?
                 </ThemedText>
                 
-                <View style={styles.dropdownContainer}>
+                <View>
                   <Pressable
-                    style={styles.dropdown}
-                    onPress={() => setShowTimeDropdown(!showTimeDropdown)}
+                    style={styles.radioOption}
+                    onPress={() => setFamilyPresent('One family with the student present')}
                   >
-                    <ThemedText style={styles.dropdownText}>
-                      {selectedTimeSpent}
-                    </ThemedText>
-                    <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
+                    <View style={[
+                      styles.radioButton,
+                      familyPresent === 'One family with the student present' && styles.radioButtonSelected
+                    ]}>
+                      {familyPresent === 'One family with the student present' && (
+                        <View style={styles.radioButtonInner} />
+                      )}
+                    </View>
+                    <ThemedText style={styles.radioText}>One family <Text style={styles.underlinedText}>with</Text> the student present</ThemedText>
                   </Pressable>
                   
-                  {showTimeDropdown && (
-                    <View style={styles.dropdownList}>
-                      {timeOptions.map((time) => (
+                  {familyPresent === 'One family with the student present' && (
+                    <View style={{ marginLeft: 32, marginTop: 8 }}>
+                      <ThemedText style={styles.conditionalTitle}>
+                        Time spent on this service
+                      </ThemedText>
+                      
+                      <View style={styles.dropdownContainer}>
                         <Pressable
-                          key={time}
-                          style={[
-                            styles.dropdownItem,
-                            selectedTimeSpent === time && styles.selectedDropdownItem
-                          ]}
-                          onPress={() => handleTimeSelect(time)}
+                          style={styles.dropdown}
+                          onPress={() => setShowTimeDropdown(!showTimeDropdown)}
                         >
-                          <ThemedText style={[
-                            styles.dropdownItemText,
-                            selectedTimeSpent === time && styles.selectedDropdownItemText
-                          ]}>
-                            {time}
+                          <ThemedText style={styles.dropdownText}>
+                            {selectedTimeSpent}
                           </ThemedText>
-                          {selectedTimeSpent === time && (
-                            <Feather name="check" size={16} color={Colors.light.green[200]} />
-                          )}
+                          <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
                         </Pressable>
-                      ))}
+                        
+                        {showTimeDropdown && (
+                          <View style={styles.dropdownList}>
+                            {timeOptions.map((time) => (
+                              <Pressable
+                                key={time}
+                                style={[
+                                  styles.dropdownItem,
+                                  selectedTimeSpent === time && styles.selectedDropdownItem
+                                ]}
+                                onPress={() => handleTimeSelect(time)}
+                              >
+                                <ThemedText style={[
+                                  styles.dropdownItemText,
+                                  selectedTimeSpent === time && styles.selectedDropdownItemText
+                                ]}>
+                                  {time}
+                                </ThemedText>
+                                {selectedTimeSpent === time && (
+                                  <Feather name="check" size={16} color={Colors.light.green[200]} />
+                                )}
+                              </Pressable>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+
+                      <ThemedText style={[styles.conditionalTitle, { marginTop: 16 }]}>
+                        Additional details (select if applicable)
+                      </ThemedText>
+                      
+                      <View style={styles.radioContainer}>
+                        {additionalDetailOptions.map((detail) => (
+                          <Pressable
+                            key={detail}
+                            style={styles.radioOption}
+                            onPress={() => toggleAdditionalDetail(detail)}
+                          >
+                            <View style={[
+                              styles.radioButton,
+                              selectedAdditionalDetails.has(detail) && styles.radioButtonSelected
+                            ]}>
+                              {selectedAdditionalDetails.has(detail) && (
+                                <View style={styles.radioButtonInner} />
+                              )}
+                            </View>
+                            <ThemedText style={styles.radioText}>
+                              {detail}
+                            </ThemedText>
+                          </Pressable>
+                        ))}
+                      </View>
                     </View>
                   )}
                 </View>
-
-                <ThemedText style={[styles.conditionalTitle, { marginTop: 16 }]}>
-                  Additional details (select if applicable)
-                </ThemedText>
                 
-                <View style={styles.radioContainer}>
-                  {additionalDetailOptions.map((detail) => (
-                    <Pressable
-                      key={detail}
-                      style={styles.radioOption}
-                      onPress={() => toggleAdditionalDetail(detail)}
-                    >
-                      <View style={[
-                        styles.radioButton,
-                        selectedAdditionalDetails.has(detail) && styles.radioButtonSelected
-                      ]}>
-                        {selectedAdditionalDetails.has(detail) && (
-                          <View style={styles.radioButtonInner} />
+                <View>
+                  <Pressable
+                    style={styles.radioOption}
+                    onPress={() => setFamilyPresent('One family without the student present')}
+                  >
+                    <View style={[
+                      styles.radioButton,
+                      familyPresent === 'One family without the student present' && styles.radioButtonSelected
+                    ]}>
+                      {familyPresent === 'One family without the student present' && (
+                        <View style={styles.radioButtonInner} />
+                      )}
+                    </View>
+                    <ThemedText style={styles.radioText}>One family <Text style={styles.underlinedText}>without</Text> the student present</ThemedText>
+                  </Pressable>
+                  
+                  {familyPresent === 'One family without the student present' && (
+                    <View style={{ marginLeft: 32, marginTop: 8 }}>
+                      <ThemedText style={styles.conditionalTitle}>
+                        Time spent on this service
+                      </ThemedText>
+                      
+                      <View style={styles.dropdownContainer}>
+                        <Pressable
+                          style={styles.dropdown}
+                          onPress={() => setShowTimeDropdown(!showTimeDropdown)}
+                        >
+                          <ThemedText style={styles.dropdownText}>
+                            {selectedTimeSpent}
+                          </ThemedText>
+                          <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
+                        </Pressable>
+                        
+                        {showTimeDropdown && (
+                          <View style={styles.dropdownList}>
+                            {timeOptions.map((time) => (
+                              <Pressable
+                                key={time}
+                                style={[
+                                  styles.dropdownItem,
+                                  selectedTimeSpent === time && styles.selectedDropdownItem
+                                ]}
+                                onPress={() => handleTimeSelect(time)}
+                              >
+                                <ThemedText style={[
+                                  styles.dropdownItemText,
+                                  selectedTimeSpent === time && styles.selectedDropdownItemText
+                                ]}>
+                                  {time}
+                                </ThemedText>
+                                {selectedTimeSpent === time && (
+                                  <Feather name="check" size={16} color={Colors.light.green[200]} />
+                                )}
+                              </Pressable>
+                            ))}
+                          </View>
                         )}
                       </View>
-                      <ThemedText style={styles.radioText}>
-                        {detail}
+
+                      <ThemedText style={[styles.conditionalTitle, { marginTop: 16 }]}>
+                        Additional details (select if applicable)
                       </ThemedText>
-                    </Pressable>
-                  ))}
+                      
+                      <View style={styles.radioContainer}>
+                        {additionalDetailOptions.map((detail) => (
+                          <Pressable
+                            key={detail}
+                            style={styles.radioOption}
+                            onPress={() => toggleAdditionalDetail(detail)}
+                          >
+                            <View style={[
+                              styles.radioButton,
+                              selectedAdditionalDetails.has(detail) && styles.radioButtonSelected
+                            ]}>
+                              {selectedAdditionalDetails.has(detail) && (
+                                <View style={styles.radioButtonInner} />
+                              )}
+                            </View>
+                            <ThemedText style={styles.radioText}>
+                              {detail}
+                            </ThemedText>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                </View>
+                
+                <View>
+                  <Pressable
+                    style={styles.radioOption}
+                    onPress={() => setFamilyPresent('Multiple families')}
+                  >
+                    <View style={[
+                      styles.radioButton,
+                      familyPresent === 'Multiple families' && styles.radioButtonSelected
+                    ]}>
+                      {familyPresent === 'Multiple families' && (
+                        <View style={styles.radioButtonInner} />
+                      )}
+                    </View>
+                    <ThemedText style={styles.radioText}>Multiple families</ThemedText>
+                  </Pressable>
+                  
+                  {familyPresent === 'Multiple families' && (
+                    <View style={{ marginLeft: 32, marginTop: 8 }}>
+                      <ThemedText style={styles.conditionalTitle}>
+                        Time spent on this service
+                      </ThemedText>
+                      
+                      <View style={styles.dropdownContainer}>
+                        <Pressable
+                          style={styles.dropdown}
+                          onPress={() => setShowTimeDropdown(!showTimeDropdown)}
+                        >
+                          <ThemedText style={styles.dropdownText}>
+                            {selectedTimeSpent}
+                          </ThemedText>
+                          <Feather name="chevron-down" size={20} color={Colors.light.textGray[300]} />
+                        </Pressable>
+                        
+                        {showTimeDropdown && (
+                          <View style={styles.dropdownList}>
+                            {timeOptions.map((time) => (
+                              <Pressable
+                                key={time}
+                                style={[
+                                  styles.dropdownItem,
+                                  selectedTimeSpent === time && styles.selectedDropdownItem
+                                ]}
+                                onPress={() => handleTimeSelect(time)}
+                              >
+                                <ThemedText style={[
+                                  styles.dropdownItemText,
+                                  selectedTimeSpent === time && styles.selectedDropdownItemText
+                                ]}>
+                                  {time}
+                                </ThemedText>
+                                {selectedTimeSpent === time && (
+                                  <Feather name="check" size={16} color={Colors.light.green[200]} />
+                                )}
+                              </Pressable>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+
+                      <ThemedText style={[styles.conditionalTitle, { marginTop: 16 }]}>
+                        Additional details (select if applicable)
+                      </ThemedText>
+                      
+                      <View style={styles.radioContainer}>
+                        {additionalDetailOptions.map((detail) => (
+                          <Pressable
+                            key={detail}
+                            style={styles.radioOption}
+                            onPress={() => toggleAdditionalDetail(detail)}
+                          >
+                            <View style={[
+                              styles.radioButton,
+                              selectedAdditionalDetails.has(detail) && styles.radioButtonSelected
+                            ]}>
+                              {selectedAdditionalDetails.has(detail) && (
+                                <View style={styles.radioButtonInner} />
+                              )}
+                            </View>
+                            <ThemedText style={styles.radioText}>
+                              {detail}
+                            </ThemedText>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
               </View>
             )}
@@ -2742,7 +2948,7 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
           >
             <ThemedText style={styles.backButtonText}>Back</ThemedText>
           </Pressable>
-          <Pressable
+          <Pressable 
             style={styles.continueButton}
             onPress={handleContinue}
           >
@@ -2756,15 +2962,25 @@ export const BillingTab: React.FC<BillingTabProps> = ({ appointment }) => {
   return (
     <>
       <ThemedView variant="elevated" style={styles.emptyStateCard}>
-        <ThemedText style={styles.emptyStateText}>
-          No billing information found for this appointment.
-        </ThemedText>
+        <View style={styles.emptyStateContent}>
+          <View style={styles.iconContainer}>
+            <Feather name="file-text" size={32} color={Colors.light.green[200]} />
+            <View style={styles.dollarSignOverlay}>
+              <ThemedText style={styles.dollarSign}>$</ThemedText>
+            </View>
+          </View>
+          <ThemedText style={styles.emptyStateTitle}>
+            This session might qualify for reimbursement
+          </ThemedText>
+          <ThemedText style={styles.emptyStateText}>
+            Answer a few quick questions to check eligibility and file your claim
+          </ThemedText>
+        </View>
         <Pressable 
           style={styles.actionButton}
           onPress={handleCreateClaim}
         >
-          <Feather name="file-plus" size={20} color={Colors.light.background} />
-          <ThemedText style={styles.buttonText}>Create Claim</ThemedText>
+          <ThemedText style={styles.buttonText}>Complete</ThemedText>
         </Pressable>
       </ThemedView>
 
@@ -2796,14 +3012,44 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 150,
+    minHeight: 200,
+  },
+  emptyStateContent: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  iconContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  dollarSignOverlay: {
+    position: 'absolute',
+    right: -5,
+    top: -5,
+    backgroundColor: Colors.light.green[100],
+    borderRadius: 12,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dollarSign: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: Colors.light.green[200],
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.light.textGray[100],
+    textAlign: 'center',
+    marginBottom: 8,
   },
   emptyStateText: {
     color: Colors.light.textGray[300],
-    padding: 16,
     fontSize: 16,
-    marginBottom: 16,
     textAlign: 'center',
+    marginBottom: 16,
   },
   actionButton: {
     backgroundColor: Colors.light.green[200],
