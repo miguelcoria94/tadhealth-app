@@ -4,7 +4,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { appointments } from '@/assets/dummyData/appointments';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import React from 'react';
 
 // Define interfaces
@@ -33,6 +33,81 @@ interface ClaimDetail {
 
 // Generate mock data for claims based on appointments
 const generateMockClaims = (): ClaimDetail[] => {
+  // Get specific appointments for our demo
+  const appointment1 = appointments.find(a => a.id === 1); // John Doe
+  const appointment2 = appointments.find(a => a.id === 3); // Jane Smith
+  const appointment3 = appointments.find(a => a.id === 5); // Samuel Green
+  
+  if (!appointment1 || !appointment2 || !appointment3) {
+    // Fallback if appointments not found
+    return [
+      // First claim: Completed
+      {
+        id: 'claim-1',
+        referenceNo: 'REF100001',
+        submissionDate: new Date().toISOString().split('T')[0],
+        student: {
+          id: '1001',
+          name: 'Emma Johnson',
+        },
+        appointment: {
+          id: '2001',
+          date: new Date().toISOString().split('T')[0],
+          time: '10:00 AM',
+          service: 'Therapy Session',
+        },
+        status: 'Submitted',
+        details: {
+          timeSpent: '45 min',
+          additionalInfo: 'Regular session with good progress. Student showed improvement in coping strategies.',
+          amount: 85.75,
+          modalitiesUsed: ['Cognitive Behavioral Therapy', 'Talk Therapy'],
+        },
+      },
+      // Second claim: In Progress
+      {
+        id: 'claim-2',
+        referenceNo: 'REF100002',
+        submissionDate: '',
+        student: {
+          id: '1002',
+          name: 'Michael Smith',
+        },
+        appointment: {
+          id: '2002',
+          date: new Date().toISOString().split('T')[0],
+          time: '11:30 AM',
+          service: 'Initial Assessment',
+        },
+        status: 'In Progress',
+        details: {
+          timeSpent: '30 min',
+          additionalInfo: '',
+          amount: 0,
+          modalitiesUsed: ['Talk Therapy'],
+        },
+      },
+      // Third claim: Not Started
+      {
+        id: 'claim-3',
+        referenceNo: 'REF100003',
+        submissionDate: '',
+        student: {
+          id: '1003',
+          name: 'Sophia Williams',
+        },
+        appointment: {
+          id: '2003',
+          date: new Date().toISOString().split('T')[0],
+          time: '2:00 PM',
+          service: 'Therapy Session',
+        },
+        status: 'Not Started',
+        details: undefined,
+      },
+    ];
+  }
+  
   return [
     // First claim: Completed
     {
@@ -40,14 +115,14 @@ const generateMockClaims = (): ClaimDetail[] => {
       referenceNo: 'REF100001',
       submissionDate: new Date().toISOString().split('T')[0],
       student: {
-        id: '1001',
-        name: 'Emma Johnson',
+        id: String(appointment1.student.id),
+        name: appointment1.student.name,
       },
       appointment: {
-        id: '2001',
-        date: new Date().toISOString().split('T')[0],
-        time: '10:00 AM',
-        service: 'Therapy Session',
+        id: String(appointment1.id),
+        date: appointment1.time.date,
+        time: appointment1.time.time,
+        service: appointment1.type,
       },
       status: 'Submitted',
       details: {
@@ -63,14 +138,14 @@ const generateMockClaims = (): ClaimDetail[] => {
       referenceNo: 'REF100002',
       submissionDate: '',
       student: {
-        id: '1002',
-        name: 'Michael Smith',
+        id: String(appointment2.student.id),
+        name: appointment2.student.name,
       },
       appointment: {
-        id: '2002',
-        date: new Date().toISOString().split('T')[0],
-        time: '11:30 AM',
-        service: 'Initial Assessment',
+        id: String(appointment2.id),
+        date: appointment2.time.date,
+        time: appointment2.time.time,
+        service: appointment2.type,
       },
       status: 'In Progress',
       details: {
@@ -86,14 +161,14 @@ const generateMockClaims = (): ClaimDetail[] => {
       referenceNo: 'REF100003',
       submissionDate: '',
       student: {
-        id: '1003',
-        name: 'Sophia Williams',
+        id: String(appointment3.student.id),
+        name: appointment3.student.name,
       },
       appointment: {
-        id: '2003',
-        date: new Date().toISOString().split('T')[0],
-        time: '2:00 PM',
-        service: 'Therapy Session',
+        id: String(appointment3.id),
+        date: appointment3.time.date,
+        time: appointment3.time.time,
+        service: appointment3.type,
       },
       status: 'Not Started',
       details: undefined,
@@ -108,12 +183,26 @@ export default function ClaimDetailScreen() {
   const router = useRouter();
   const id = params.id as string;
   
+  // Custom back button component
+  const CustomBackButton = () => (
+    <TouchableOpacity 
+      onPress={() => router.back()} 
+      style={{ marginLeft: 8, flexDirection: 'row', alignItems: 'center' }}
+    >
+      <Ionicons name="chevron-back" size={24} color={Colors.light.tint} />
+    </TouchableOpacity>
+  );
+  
   const claim = mockClaims.find((c) => c.id === id);
   
   if (!claim) {
     return (
       <View style={styles.container}>
-        <Stack.Screen options={{ title: 'Claim Details' }} />
+        <Stack.Screen options={{ 
+          title: 'Claim Details',
+          headerLeft: () => <CustomBackButton />,
+          headerTintColor: Colors.light.tint
+        }} />
         <View style={styles.errorContainer}>
           <ThemedText style={styles.errorText}>Claim not found</ThemedText>
           <Pressable 
@@ -134,6 +223,8 @@ export default function ClaimDetailScreen() {
         <Stack.Screen 
           options={{ 
             title: 'Claim Details',
+            headerLeft: () => <CustomBackButton />,
+            headerTintColor: Colors.light.tint,
             headerRight: () => (
               <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 15 }}>
                 <ThemedText style={{ color: Colors.light.tint }}>Close</ThemedText>
@@ -149,7 +240,7 @@ export default function ClaimDetailScreen() {
           </ThemedText>
           <Pressable 
             style={styles.createClaimButton}
-            onPress={() => router.push('/claims-create')}
+            onPress={() => router.push(`/claims-create?appointmentId=${claim.appointment.id}`)}
           >
             <ThemedText style={styles.createClaimButtonText}>Create Claim</ThemedText>
           </Pressable>
@@ -166,6 +257,8 @@ export default function ClaimDetailScreen() {
       <Stack.Screen 
         options={{ 
           title: 'Claim Details',
+          headerLeft: () => <CustomBackButton />,
+          headerTintColor: Colors.light.tint,
           headerRight: () => (
             <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 15 }}>
               <ThemedText style={{ color: Colors.light.tint }}>Close</ThemedText>
@@ -267,12 +360,18 @@ export default function ClaimDetailScreen() {
               <ThemedText style={styles.label}>Modalities Used:</ThemedText>
               <View style={styles.tagsContainer}>
                 {claim.details.modalitiesUsed.map((modality, index) => (
-                  <View key={index} style={styles.tag}>
-                    <ThemedText style={styles.tagText}>{modality}</ThemedText>
+                  <View key={index} style={[
+                    styles.tag,
+                    { backgroundColor: claim.status === 'Submitted' ? Colors.light.green[100] : Colors.light.textGray[100] }
+                  ]}>
+                    <ThemedText style={[
+                      styles.tagText,
+                      { color: claim.status === 'Submitted' ? Colors.light.green[200] : Colors.light.textGray[300] }
+                    ]}>{modality}</ThemedText>
                   </View>
                 ))}
                 {isInProgress && (
-                  <View style={[styles.tag, styles.addMoreTag]}>
+                  <View style={styles.addMoreTag}>
                     <ThemedText style={styles.addMoreText}>+ Add More</ThemedText>
                   </View>
                 )}
@@ -285,7 +384,7 @@ export default function ClaimDetailScreen() {
           <View style={styles.inProgressActions}>
             <Pressable 
               style={styles.continueButton}
-              onPress={() => router.push('/claims-create')}
+              onPress={() => router.push(`/claims-create?appointmentId=${claim.appointment.id}&status=${claim.status}`)}
             >
               <ThemedText style={styles.continueButtonText}>Continue Claim</ThemedText>
             </Pressable>
@@ -429,7 +528,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tag: {
-    backgroundColor: Colors.light.textGray[100],
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 16,
@@ -438,12 +536,17 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    color: Colors.light.text,
+    fontWeight: '500',
   },
   addMoreTag: {
     borderWidth: 1,
     borderColor: Colors.light.tint,
     backgroundColor: 'transparent',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
   },
   addMoreText: {
     fontSize: 12,

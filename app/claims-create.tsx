@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -8,7 +8,7 @@ import {
   Text,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
@@ -16,11 +16,34 @@ import { appointments } from '@/assets/dummyData/appointments';
 
 export default function ClaimCreateScreen() {
   const router = useRouter();
-  const [step, setStep] = useState<'select-appointment' | 'eligibility' | 'details'>('select-appointment');
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
+  const params = useLocalSearchParams();
+  const appointmentIdParam = params.appointmentId as string;
+  const statusParam = params.status as string;
+  
+  // If status is "In Progress", skip to details
+  const initialStep = 
+    statusParam === "In Progress" ? 'details' :
+    appointmentIdParam ? 'eligibility' : 'select-appointment';
+  
+  const [step, setStep] = useState<'select-appointment' | 'eligibility' | 'details'>(initialStep);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(
+    appointmentIdParam ? Number(appointmentIdParam) : null
+  );
   
   // Get completed appointments that don't have claims
   const eligibleAppointments = appointments.filter(apt => apt.status === 'Completed');
+
+  // If we have an appointmentId from params, use it
+  useEffect(() => {
+    if (appointmentIdParam && step === 'select-appointment') {
+      setSelectedAppointmentId(Number(appointmentIdParam));
+      if (statusParam === "In Progress") {
+        setStep('details');
+      } else {
+        setStep('eligibility');
+      }
+    }
+  }, [appointmentIdParam, statusParam]);
 
   const handleAppointmentSelect = (id: number) => {
     setSelectedAppointmentId(id);
