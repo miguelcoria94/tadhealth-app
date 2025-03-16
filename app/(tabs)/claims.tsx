@@ -101,8 +101,8 @@ export default function ClaimsScreen() {
       referenceNo: "REF100001",
       submissionDate: new Date().toLocaleDateString(),
       student: {
-        id: 1001,
-        name: "Emma Johnson",
+        id: 101,
+        name: "John Doe",
         age: 16,
         grade: 10,
         mentalState: "Stable",
@@ -112,8 +112,8 @@ export default function ClaimsScreen() {
         },
       },
       appointment: {
-        date: new Date().toLocaleDateString(),
-        time: "10:00 AM",
+        date: "2024-12-15",
+        time: "13:30",
       },
       status: "Submitted", // Completed
     },
@@ -122,8 +122,8 @@ export default function ClaimsScreen() {
       referenceNo: "REF100002",
       submissionDate: new Date().toLocaleDateString(),
       student: {
-        id: 1002,
-        name: "Michael Smith",
+        id: 102,
+        name: "Jane Smith",
         age: 15,
         grade: 9,
         mentalState: "Improving",
@@ -133,8 +133,8 @@ export default function ClaimsScreen() {
         },
       },
       appointment: {
-        date: new Date().toLocaleDateString(),
-        time: "11:30 AM",
+        date: "2024-11-30",
+        time: "09:30",
       },
       status: "In Progress", // In Progress
     },
@@ -143,8 +143,8 @@ export default function ClaimsScreen() {
       referenceNo: "REF100003",
       submissionDate: "",
       student: {
-        id: 1003,
-        name: "Sophia Williams",
+        id: 103,
+        name: "Samuel Green",
         age: 17,
         grade: 11,
         mentalState: "Needs Assessment",
@@ -155,7 +155,7 @@ export default function ClaimsScreen() {
       },
       appointment: {
         date: new Date().toLocaleDateString(),
-        time: "2:00 PM",
+        time: "14:00",
       },
       status: "Not Started", // Not Started
     },

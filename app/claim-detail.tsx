@@ -33,10 +33,10 @@ interface ClaimDetail {
 
 // Generate mock data for claims based on appointments
 const generateMockClaims = (): ClaimDetail[] => {
-  // Get specific appointments for our demo
-  const appointment1 = appointments.find(a => a.id === 1); // John Doe
-  const appointment2 = appointments.find(a => a.id === 3); // Jane Smith
-  const appointment3 = appointments.find(a => a.id === 5); // Samuel Green
+  // Get specific appointments for our demo with different students
+  const appointment1 = appointments.find(a => a.id === 3); // John Doe (completed appointment)
+  const appointment2 = appointments.find(a => a.id === 6); // Jane Smith (completed appointment)
+  const appointment3 = appointments.find(a => a.id === 7); // Samuel Green
   
   if (!appointment1 || !appointment2 || !appointment3) {
     // Fallback if appointments not found
